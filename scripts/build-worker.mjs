@@ -5,6 +5,7 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { cspScriptHash, inlineScriptBodies } from "./csp-hash.mjs";
 import { contentType, isTextAsset } from "./worker-route.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,6 +24,14 @@ if (!assets["/index.html"] || !assets["/404.html"]) {
   process.exit(1);
 }
 
+const scriptHashes = [
+  ...new Set(
+    Object.values(assets)
+      .filter((asset) => asset.t && asset.ct.startsWith("text/html"))
+      .flatMap((asset) => inlineScriptBodies(asset.t).map((body) => cspScriptHash(body))),
+  ),
+].sort();
+
 const routeSource = readFileSync(join(root, "scripts", "worker-route.mjs"), "utf8")
   .replace(/^\/\*\*[\s\S]*?\*\/\n/, "")
   .replace(/^export /gm, "");
@@ -40,7 +49,7 @@ function assetBody(p) {
 ${routeSource}
 export default {
   async fetch(req) {
-    const result = handleRequest(req, A, assetBody);
+    const result = handleRequest(req, A, assetBody, ${JSON.stringify(scriptHashes)});
     return new Response(result.body, { status: result.status, headers: result.headers });
   },
 };
@@ -50,6 +59,7 @@ writeFileSync(outFile, worker);
 const routes = Object.keys(assets).filter((key) => key.endsWith("/index.html")).sort();
 console.log(`Wrote ${outFile} (${statSync(outFile).size} bytes, ${Object.keys(assets).length} assets)`);
 console.log(`Prerendered HTML: ${routes.join(", ")}`);
+console.log(`CSP script hashes: ${scriptHashes.length}`);
 
 function walk(dir) {
   for (const name of readdirSync(dir)) {

@@ -75,6 +75,50 @@ function lookup(pathname, assets) {
   return null;
 }
 
+/**
+ * style-src includes 'unsafe-inline' because Recharts and React set style
+ * attributes. style-src-attr falls back to style-src, and a hash cannot allow
+ * those attributes. Scripts stay on 'self' plus a sha256 for each JSON-LD
+ * block. application/ld+json is not JavaScript, and the hash keeps the policy
+ * valid if a browser still treats the block as a script.
+ */
+export function contentSecurityPolicy(scriptHashes = []) {
+  const hashes = [...new Set(scriptHashes)];
+  return [
+    "default-src 'self'",
+    `script-src 'self'${hashes.length ? ` ${hashes.join(" ")}` : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "upgrade-insecure-requests",
+  ].join("; ");
+}
+
+export const PERMISSIONS_POLICY = [
+  "accelerometer=()",
+  "camera=()",
+  "geolocation=()",
+  "gyroscope=()",
+  "magnetometer=()",
+  "microphone=()",
+  "payment=()",
+  "usb=()",
+].join(", ");
+
+function applySecurityHeaders(headers, scriptHashes) {
+  headers["content-security-policy"] = contentSecurityPolicy(scriptHashes);
+  headers["strict-transport-security"] = "max-age=31536000; includeSubDomains";
+  headers["x-content-type-options"] = "nosniff";
+  headers["referrer-policy"] = "strict-origin-when-cross-origin";
+  headers["permissions-policy"] = PERMISSIONS_POLICY;
+  headers["cross-origin-opener-policy"] = "same-origin";
+  headers["x-frame-options"] = "DENY";
+  return headers;
+}
+
 function notFound(headers, assets) {
   const asset = assets["/404.html"] ? "/404.html" : null;
   headers["content-type"] = asset ? assets[asset].ct : "text/plain; charset=utf-8";
@@ -85,10 +129,11 @@ function notFound(headers, assets) {
 /**
  * @param {Request} req
  * @param {Record<string, { ct: string }>} assets
+ * @param {string[]} [scriptHashes]
  */
-export function resolveRequest(req, assets) {
+export function resolveRequest(req, assets, scriptHashes = []) {
   const url = new URL(req.url);
-  const headers = { "x-content-type-options": "nosniff" };
+  const headers = applySecurityHeaders({}, scriptHashes);
   if (isWorkersDevHost(url.hostname)) headers["x-robots-tag"] = "noindex";
 
   if (req.method !== "GET" && req.method !== "HEAD") {
@@ -129,8 +174,8 @@ export function resolveRequest(req, assets) {
   return { status: 200, headers, body: null, asset };
 }
 
-export function handleRequest(req, assets, readBody) {
-  const result = resolveRequest(req, assets);
+export function handleRequest(req, assets, readBody, scriptHashes = []) {
+  const result = resolveRequest(req, assets, scriptHashes);
   let body = result.body;
   if (result.asset && req.method !== "HEAD") body = readBody(result.asset);
   if (req.method === "HEAD") body = null;

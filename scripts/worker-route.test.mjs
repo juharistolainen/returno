@@ -1,5 +1,9 @@
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { contentType, handleRequest } from "./worker-route.mjs";
+import { cspScriptHash, inlineScriptBodies } from "./csp-hash.mjs";
+import { jsonLdGraph, seoPages } from "../src/content/seo.ts";
+import { PERMISSIONS_POLICY, contentSecurityPolicy, contentType, handleRequest } from "./worker-route.mjs";
 
 const assets = {
   "/index.html": { ct: contentType("/index.html") },
@@ -18,8 +22,31 @@ const assets = {
   "/data.json": { ct: contentType("/data.json") },
 };
 
-function respond(url, method = "GET") {
-  return handleRequest(new Request(url, { method }), assets, (path) => `body:${path}`);
+function respond(url, method = "GET", scriptHashes = []) {
+  return handleRequest(new Request(url, { method }), assets, (path) => `body:${path}`, scriptHashes);
+}
+
+function expectSecurityHeaders(headers) {
+  const policy = headers["content-security-policy"];
+  expect(policy).toContain("default-src 'self'");
+  expect(policy).toContain("img-src 'self' data:");
+  expect(policy).toContain("object-src 'none'");
+  expect(policy).toContain("base-uri 'self'");
+  expect(policy).toContain("frame-ancestors 'none'");
+  expect(policy).toContain("form-action 'self'");
+  expect(policy).toContain("upgrade-insecure-requests");
+  expect(policy).toContain("style-src 'self' 'unsafe-inline'");
+  expect(policy).not.toMatch(/script-src[^;]*unsafe-inline/);
+  expect(headers["strict-transport-security"]).toBe("max-age=31536000; includeSubDomains");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(headers["permissions-policy"]).toBe(PERMISSIONS_POLICY);
+  expect(headers["permissions-policy"]).toContain("camera=()");
+  expect(headers["permissions-policy"]).toContain("microphone=()");
+  expect(headers["permissions-policy"]).toContain("geolocation=()");
+  expect(headers["cross-origin-opener-policy"]).toBe("same-origin");
+  expect(headers["x-frame-options"]).toBe("DENY");
+  return policy;
 }
 
 describe("worker routing", () => {
@@ -112,4 +139,58 @@ describe("worker routing", () => {
     expect(res.status).toBe(200);
     expect(res.body).toBeNull();
   });
+
+  it("sends the security headers on every kind of response", () => {
+    const samples = [
+      respond("https://returno.site/savings"),
+      respond("https://returno.site/assets/app.js"),
+      respond("https://returno.site/missing-page"),
+      respond("https://returno.site/savings/"),
+      respond("https://www.returno.site/goal"),
+      respond("https://returno.riussi.workers.dev/compare"),
+      respond("https://returno.site/savings", "POST"),
+      respond("https://returno.site/savings", "HEAD"),
+    ];
+    for (const res of samples) expectSecurityHeaders(res.headers);
+  });
+
+  it("allows each calculator's JSON-LD by hash and not by unsafe-inline", () => {
+    const hashes = seoPages.map((page) => cspScriptHash(JSON.stringify(jsonLdGraph(page)).replaceAll("<", "\\u003c")));
+    const policy = expectSecurityHeaders(respond("https://returno.site/savings", "GET", hashes).headers);
+    expect(policy).toContain("script-src 'self'");
+    for (const hash of hashes) expect(policy).toContain(hash);
+    expect(contentSecurityPolicy(hashes)).toBe(policy);
+  });
 });
+
+describe("built pages under the CSP", () => {
+  it("hashes only JSON-LD blocks from the prerendered HTML", () => {
+    const savings = join("dist", "savings", "index.html");
+    if (!existsSync(savings) || !readFileSync(savings, "utf8").includes("application/ld+json")) return;
+    const files = htmlFiles("dist");
+    const bodies = [];
+    for (const file of files) {
+      const html = readFileSync(file, "utf8");
+      const tags = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+      for (const tag of tags) {
+        if (/\ssrc\s*=/i.test(tag[1])) continue;
+        expect(tag[1]).toMatch(/type="application\/ld\+json"/);
+        bodies.push(tag[2]);
+      }
+    }
+    expect(bodies.length).toBeGreaterThan(0);
+    const policy = contentSecurityPolicy(bodies.map((body) => cspScriptHash(body)));
+    for (const body of bodies) expect(policy).toContain(cspScriptHash(body));
+    expect(policy).not.toMatch(/script-src[^;]*unsafe-inline/);
+    expect(inlineScriptBodies(readFileSync(savings, "utf8")).length).toBeGreaterThan(0);
+  });
+});
+
+function htmlFiles(dir, found = []) {
+  for (const name of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, name.name);
+    if (name.isDirectory()) htmlFiles(path, found);
+    else if (name.name.endsWith(".html")) found.push(path);
+  }
+  return found;
+}
