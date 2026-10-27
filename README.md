@@ -58,7 +58,7 @@ A version tag `v*` runs the release workflow, which lints, typechecks, tests, bu
 
 - [PLAN.md](PLAN.md) is the SEO and AI-search roadmap, with what is done and what is still open.
 - [DESIGN-PLAN.md](DESIGN-PLAN.md) is the planned restyle to a Wise-inspired design system. It has not started.
-- [docs/security-review-2026-10.md](docs/security-review-2026-10.md) is the October 2026 security review. [SECURITY.md](SECURITY.md) says how to report a vulnerability.
+- [SECURITY.md](SECURITY.md) says how to report a vulnerability.
 - [AGENTS.md](AGENTS.md) is the guide for coding agents. `CLAUDE.md` imports it.
 
 ## License
