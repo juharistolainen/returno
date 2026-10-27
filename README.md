@@ -35,21 +35,11 @@ npm run build
 
 `npm test` runs Vitest on the calculation, search-param, and storage modules. The calculation tests cover contribution timing, compounding frequencies, a zero rate, tax, and fund fees.
 
-## Deploy to GitHub Pages
+## GitHub Pages
 
-The workflow in `.github/workflows/pages.yml` builds with Vite base path `/returno/` and deploys `dist` on every push to `main`.
+The GitHub Pages workflow has been removed. Returno is published from the release zip (and, in production, from the Cloudflare Worker), not from `github.io`.
 
-Client-side routes use the browser history API. The build copies `index.html` to `404.html`, which is how GitHub Pages serves the app for paths such as `/returno/savings`.
-
-Before the first deploy, a repository admin needs to turn Pages on:
-
-1. Open **Settings → Pages**.
-2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-3. Merge this project to `main` (or run the **Deploy GitHub Pages** workflow).
-
-The site is then published at `https://<user>.github.io/returno/`. Renaming the repository means changing `pagesBase` in `vite.config.ts` to the new path.
-
-`npm run build:pages` is the same build the workflow runs. `npm run build` keeps the base path at `/` for a local preview and for hosts that serve the site from the domain root.
+`npm run build:pages` still builds with Vite base path `/returno/` and copies `index.html` to `404.html`, which is the old project-site fallback. `npm run build` keeps the base path at `/`.
 
 ## Static upload (Cloudflare Pages and similar)
 

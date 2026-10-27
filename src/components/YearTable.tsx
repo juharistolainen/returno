@@ -1,4 +1,4 @@
-import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { tableFeatures, useTable, type ColumnDef } from "@tanstack/react-table";
 
 interface TableColumn<T> {
   id: string;
@@ -6,6 +6,8 @@ interface TableColumn<T> {
   align: "left" | "right";
   cell: (row: T) => string;
 }
+
+const features = tableFeatures({});
 
 export function YearTable<T extends { year: number }>({
   rows,
@@ -17,16 +19,16 @@ export function YearTable<T extends { year: number }>({
   caption: string;
 }) {
   const alignById = new Map(columns.map((column) => [column.id, column.align]));
-  const columnDefs: ColumnDef<T>[] = columns.map((column) => ({
+  const columnDefs: ColumnDef<typeof features, T>[] = columns.map((column) => ({
     id: column.id,
     header: column.header,
     cell: (info) => column.cell(info.row.original),
   }));
 
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data: rows,
     columns: columnDefs,
-    getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => String(row.year),
   });
 
@@ -47,7 +49,7 @@ export function YearTable<T extends { year: number }>({
                     scope="col"
                     className={`px-4 py-2 font-medium ${alignClass(alignById.get(header.column.id))}`}
                   >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    <table.FlexRender header={header} />
                   </th>
                 ))}
               </tr>
@@ -56,9 +58,9 @@ export function YearTable<T extends { year: number }>({
           <tbody>
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id} className="border-b border-line/70 last:border-0">
-                {row.getVisibleCells().map((cell) => (
+                {row.getAllCells().map((cell) => (
                   <td key={cell.id} className={`px-4 py-2 tabular-nums ${alignClass(alignById.get(cell.column.id))}`}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <table.FlexRender cell={cell} />
                   </td>
                 ))}
               </tr>

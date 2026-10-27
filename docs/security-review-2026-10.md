@@ -24,7 +24,7 @@ The same floating-tag pattern applied to `actions/checkout`, `actions/setup-node
 
 **Evidence:** `.github/workflows/release-site.yml` and `.github/workflows/pages.yml` before this change. `contents: write` is set on the release workflow.
 
-**Fix:** each action is pinned to a full commit SHA, with the version in a comment (`action-gh-release` v2.6.2, `checkout` v4.4.0, `setup-node` v4.4.0, `upload-pages-artifact` v3.0.1, `deploy-pages` v4.0.5). Major upgrades (checkout v7, setup-node v7, deploy-pages v5) were not taken.
+**Fix:** each action is pinned to a full commit SHA, with the version in a comment (`action-gh-release` v2.6.2, `checkout` v4.4.0, `setup-node` v4.4.0, `upload-pages-artifact` v3.0.1, `deploy-pages` v4.0.5). Major upgrades (checkout v7, setup-node v7, deploy-pages v5) were not taken. The Pages workflow was later deleted (I3), so only the release-workflow pins remain.
 
 ### Low
 
@@ -98,18 +98,29 @@ The only `hasInstallScript` entry is `fsevents@2.3.3`, an optional macOS depende
 
 #### L8. Direct dependencies have newer major versions
 
-**Status:** recommendation. Not bumped.
+**Status:** done. Every direct dependency is on the latest stable release as of 27 October 2026. `npm outdated` is empty. `npm audit` (full tree and `--omit=dev`) reports 0 vulnerabilities.
 
-`npm outdated` on 27 October 2026:
-
-| Package | Installed | Latest |
+| Package | Was | Now |
 | --- | --- | --- |
 | `@tanstack/react-table` | 8.21.3 | 9.3.1 |
 | `typescript` | 6.0.3 | 7.0.2 |
 | `vitest` | 4.1.12 | 5.0.5 |
 | `@types/node` | 24.19.2 | 26.6.5 |
+| `@fontsource/dm-sans` | 5.2.8 | 5.3.0 |
+| `@fontsource/fraunces` | 5.2.9 | 5.3.0 |
+| `@tanstack/react-form` | 1.28.0 | 1.33.5 |
+| `@tanstack/react-router` | 1.168.0 | 1.170.46 |
+| `react` / `react-dom` | 19.2.4 | 19.3.1 |
+| `react-is` | 19.3.1 | 19.3.1 |
+| `recharts` | 3.7.0 | 3.10.1 |
+| `@tailwindcss/vite` / `tailwindcss` | 4.2.2 | 4.3.3 |
+| `@types/react` | 19.2.14 | 19.3.0 |
+| `@types/react-dom` | 19.2.3 | 19.3.0 |
+| `@vitejs/plugin-react` | 6.0.1 | 6.1.2 |
+| `oxlint` | 1.50.0 | 1.90.0 |
+| `vite` | 8.0.8 | 8.3.5 |
 
-Wanted versions within the current ranges already match what is installed, so there is no low-risk lockfile bump. These packages are maintained. A major upgrade is a separate change.
+**Migration:** TanStack Table 9 is the only API change. `YearTable` now calls `useTable` with an explicit `tableFeatures({})`. The core row model is built in, so `getCoreRowModel` is gone. `ColumnDef` takes the feature set as its first type argument. The table reads cells with `getAllCells()` because column visibility is no longer included unless that feature is registered. Headers and cells render through `table.FlexRender`. TypeScript 7 and Vitest 5 needed no config change. `tsconfig` is unchanged, and `vitest.config.ts` is unchanged. Lint, typecheck, the 54 unit tests, and `npm run build` pass.
 
 ### Informational
 
@@ -138,7 +149,7 @@ X-Frame-Options: DENY
 
 #### I3. GitHub Pages workflow is present and disabled
 
-`.github/workflows/pages.yml` still deploys on a push to `main`, with `contents: read`, `pages: write`, and `id-token: write`. Those permissions are what `actions/deploy-pages` needs. GitHub reports the workflow as `disabled_manually`. This review did not enable it, did not run it, and did not delete it. Deleting the file is reasonable if Pages is not coming back. Leaving it is also reasonable if the disable switch is the intended off switch.
+**Status:** done. `.github/workflows/pages.yml` is deleted. It is not re-enabled and it is not run. `npm run build:pages` remains, so a `/returno/` base build can still be produced by hand. The README no longer tells anyone to turn the Pages workflow on.
 
 #### I4. Financial model limits that are intentional
 
@@ -160,8 +171,10 @@ No tokens, private keys, or `.env` files are in the tree. `git` history for the 
 
 ## What this pull request changes
 
-- Pins the Actions used by both workflows to commit SHAs.
+- Pins the Actions used by the release workflow to commit SHAs. The Pages workflow was removed instead of kept in a pinned, disabled state.
 - Narrows the release tag filter to version-like tags.
+- Deletes `.github/workflows/pages.yml`.
+- Upgrades every direct dependency to the latest stable release, including TanStack Table 9, TypeScript 7, Vitest 5, and `@types/node` 26.
 - Updates the release notes so they mention `/goal` and do not say GitHub Pages is the deploy path.
 - Formats chart years, distinguishes a near date from a past date, and refuses a horizon past 80 years.
 - Stops non-finite fund fees from producing `NaN`.
@@ -171,6 +184,4 @@ No tokens, private keys, or `.env` files are in the tree. `git` history for the 
 ## Left for Juha
 
 - Turn on tag protection so only maintainers can push or move `v*` tags.
-- Decide whether to delete `.github/workflows/pages.yml` or keep it disabled.
 - Add the response headers above on the Worker, and test the CSP against the charts before enforcing it.
-- Upgrade TypeScript, Vitest, or TanStack Table across a major version only as its own change.
