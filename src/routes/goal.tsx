@@ -4,8 +4,8 @@ import { GrowthChart } from "../components/GrowthChart.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
 import { Summary } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
-import { formatEur } from "../lib/format.ts";
-import { goalChart, monthsUntil, planGoal, MAX_GOAL_MONTHS, type GoalInput } from "../lib/goal.ts";
+import { formatChartYear, formatEur } from "../lib/format.ts";
+import { goalChart, monthsUntil, planGoal, type GoalInput } from "../lib/goal.ts";
 import { sessionToday } from "../lib/session-today.ts";
 import { validateSearch } from "../lib/search.ts";
 import type { Scenario } from "../lib/scenario.ts";
@@ -75,7 +75,7 @@ function GoalPage() {
                 id: "year",
                 header: "Year",
                 align: "left",
-                cell: (row) => (Number.isInteger(row.year) ? String(row.year) : row.year.toFixed(1)),
+                cell: (row) => formatChartYear(row.year),
               },
               { id: "topups", header: "Top-ups", align: "right", cell: (row) => formatEur(row.contributions) },
               { id: "growth", header: "Growth", align: "right", cell: (row) => formatEur(row.gain) },
@@ -106,7 +106,7 @@ function GoalPage() {
 
 function goalInput(scenario: Scenario, today: Date): GoalInput {
   const counted = scenario.horizonMode === "date" ? monthsUntil(scenario.targetDate, today) : scenario.years * 12;
-  const months = counted === null ? scenario.years * 12 : counted > MAX_GOAL_MONTHS ? MAX_GOAL_MONTHS : counted;
+  const months = counted === null ? scenario.years * 12 : counted;
   return {
     vehicle: scenario.vehicle,
     targetKind: scenario.targetKind,

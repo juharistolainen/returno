@@ -1,5 +1,5 @@
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { formatEur, formatEurCompact } from "../lib/format.ts";
+import { formatChartYear, formatEur, formatEurCompact } from "../lib/format.ts";
 
 interface Series {
   dataKey: string;
@@ -27,7 +27,13 @@ export function GrowthChart({
           {multiple ? (
             <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke="#eadfcd" vertical={false} />
-              <XAxis dataKey="year" tick={{ fill: "#5e564c", fontSize: 12 }} tickLine={false} axisLine={false} />
+              <XAxis
+                dataKey="year"
+                tickFormatter={(value: number) => formatChartYear(value)}
+                tick={{ fill: "#5e564c", fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+              />
               <YAxis
                 tickFormatter={(value: number) => formatEurCompact(value)}
                 tick={{ fill: "#5e564c", fontSize: 12 }}
@@ -53,7 +59,13 @@ export function GrowthChart({
           ) : (
             <AreaChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke="#eadfcd" vertical={false} />
-              <XAxis dataKey="year" tick={{ fill: "#5e564c", fontSize: 12 }} tickLine={false} axisLine={false} />
+              <XAxis
+                dataKey="year"
+                tickFormatter={(value: number) => formatChartYear(value)}
+                tick={{ fill: "#5e564c", fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+              />
               <YAxis
                 tickFormatter={(value: number) => formatEurCompact(value)}
                 tick={{ fill: "#5e564c", fontSize: 12 }}

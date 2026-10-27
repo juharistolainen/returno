@@ -10,6 +10,17 @@ import {
 } from "./scenario.ts";
 
 describe("parseScenario", () => {
+  it("ignores hex, junk, and prototype keys", () => {
+    const before = Object.getOwnPropertyDescriptor(Object.prototype, "polluted");
+    const scenario = parseScenario(
+      JSON.parse('{"__proto__":{"polluted":true},"balance":"0x10","years":"nope","extra":"<script>"}'),
+    );
+    expect(scenario.balance).toBe(defaultScenario.balance);
+    expect(scenario.years).toBe(defaultScenario.years);
+    expect(Object.prototype).not.toHaveProperty("polluted");
+    expect(before).toBeUndefined();
+  });
+
   it("returns the defaults for an empty search", () => {
     expect(parseScenario({})).toEqual(defaultScenario);
   });

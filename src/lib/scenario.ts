@@ -56,7 +56,12 @@ const COMPOUNDING_FREQUENCIES: readonly CompoundingFrequency[] = [
 ];
 
 function readNumber(value: unknown, fallback: number, min: number, max: number): number {
-  const numeric = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
+  let numeric = Number.NaN;
+  if (typeof value === "number") {
+    numeric = value;
+  } else if (typeof value === "string" && /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim())) {
+    numeric = Number(value.trim());
+  }
   if (!Number.isFinite(numeric)) return fallback;
   return Math.min(max, Math.max(min, numeric));
 }

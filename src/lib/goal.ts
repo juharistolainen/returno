@@ -175,6 +175,7 @@ export function stockLinearGrowth(months: number, expectedReturn: number, feeRat
   if (wholeMonths === 0) return { alpha: 1, beta: 0, deposits: 0 };
   const monthly =
     Math.pow(1 + expectedReturn, 1 / MONTHS_PER_YEAR) * Math.pow(1 - feeRate, 1 / MONTHS_PER_YEAR);
+  if (!Number.isFinite(monthly)) return { alpha: Number.NaN, beta: Number.NaN, deposits: wholeMonths };
   const series = geometric(monthly, wholeMonths);
   return { alpha: series.alpha, beta: monthly * series.sum, deposits: wholeMonths };
 }
@@ -197,7 +198,28 @@ function outcome(growth: LinearGrowth, balance: number, monthly: number, infl: n
   return { final: final / infl, gain: (final - contributed) / infl };
 }
 
+function blankProjection(balance: number): Projection {
+  return {
+    finalBalance: balance,
+    finalRealBalance: balance,
+    totalContributions: balance,
+    totalGain: 0,
+    totalTax: 0,
+    totalFees: 0,
+    rows: [],
+  };
+}
+
 export function planGoal(input: GoalInput): GoalPlan {
+  if (!Number.isFinite(input.months) || input.months > MAX_GOAL_MONTHS) {
+    return {
+      status: "unreachable",
+      message: "Choose a horizon of at most 80 years.",
+      monthlyContribution: 0,
+      months: 0,
+      projection: blankProjection(input.balance),
+    };
+  }
   const months = input.months < 0 ? input.months : Math.floor(input.months);
   const solvableMonths = Math.max(0, months);
   const growth =
@@ -205,6 +227,15 @@ export function planGoal(input: GoalInput): GoalPlan {
       ? savingsLinearGrowth(solvableMonths, input.annualRate, input.compounding, input.taxRate)
       : stockLinearGrowth(solvableMonths, input.expectedReturn, input.feeRate);
   const infl = input.vehicle === "stocks" ? inflationFactor(solvableMonths, input.inflationRate) : 1;
+  if (!Number.isFinite(growth.alpha) || !Number.isFinite(growth.beta) || !Number.isFinite(infl)) {
+    return {
+      status: "unreachable",
+      message: "These rates do not produce a finite projection.",
+      monthlyContribution: 0,
+      months: solvableMonths,
+      projection: blankProjection(input.balance),
+    };
+  }
   const solved = solveMonthly(input, growth, infl, months);
   return {
     status: solved.status,
@@ -243,7 +274,10 @@ function solveMonthly(
     return {
       status: "unreachable",
       monthly: 0,
-      message: "That date is today or in the past, so there is no time to add monthly top-ups.",
+      message:
+        months < 0
+          ? "That date is in the past, so there is no time to add monthly top-ups."
+          : "That date is less than a month away, so there is no whole month in which to save.",
     };
   }
 
