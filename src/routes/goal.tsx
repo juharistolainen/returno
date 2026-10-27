@@ -39,8 +39,8 @@ function GoalPage() {
     {
       dataKey: "balance",
       label: inflationOn ? "Nominal balance" : "Balance",
-      color: scenario.vehicle === "stocks" ? "var(--positive-deep)" : "var(--negative)",
-      fill: scenario.vehicle === "stocks" ? "var(--positive-pale)" : "var(--negative-pale)",
+      color: scenario.vehicle === "stocks" ? "var(--positive)" : "var(--primary-text)",
+      fill: scenario.vehicle === "stocks" ? "var(--positive-pale)" : "var(--primary-pale)",
     },
     ...(inflationOn ? [{ dataKey: "real", label: "Today's euros", color: "var(--body)" }] : []),
     ...(scenario.targetKind === "balance" ? [{ dataKey: "target", label: "Target", color: "var(--text-3)", dash: "4 4" }] : []),

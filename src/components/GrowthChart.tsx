@@ -124,11 +124,11 @@ function ChartTooltip({
     <div className="body-sm rounded-xl bg-card px-3 py-2 text-ink shadow-md">
       <p className="body-sm-strong m-0 text-ink">Year {label}</p>
       {payload.map((entry) => (
-        <p
-          key={String(entry.dataKey)}
-          className="m-0"
-          style={{ color: series.find((item) => item.dataKey === entry.dataKey)?.color }}
-        >
+        <p key={String(entry.dataKey)} className="m-0 flex items-center gap-2">
+          <span
+            className="inline-block size-2 rounded-full"
+            style={{ backgroundColor: series.find((item) => item.dataKey === entry.dataKey)?.color }}
+          />
           {entry.name}: {formatEur(Number(entry.value))}
         </p>
       ))}

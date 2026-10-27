@@ -68,7 +68,7 @@ Recorded 2026-10-27, from Juha.
 4. **Screen titles are 32px.** Calculator pages and both 404 pages use `display-sm` (32px, weight 600). The home `h1` uses `display-md` (40px, weight 900).
 5. **Both 404 links say "Open the savings calculator" and point at `/savings`.** That label names the page it opens. "Back to Returno" does not. The heading "That page is not here" and the sentence under it stay. This is the one copy change in the retrofit.
 6. **The static 404 has no calculator nav.** The other prerendered pages include that nav. `dist/404.html` keeps the heading, the sentence, the savings link, and the build stamp.
-8. **Chart series: savings red, stocks green.** Added 2026-10-27 after the first pass, from Juha: the ink / dark-cyan lines were too alike. Savings is `--negative` (`#d03238`), stocks `--positive-deep` (`#054d28`). The single-series area fill follows the line: `--negative-pale` or `--positive-pale`. This replaces the savings and stocks rows in the Charts table and the `--primary-pale` area fill. It applies to chart strokes only; summary figures stay ink.
+8. **Chart series: savings blue, stocks green.** Added 2026-10-27 after the first pass, from Juha: the ink / dark-cyan lines were too alike. (A red / green pass came first and was replaced the same day: red read as an error state.) Savings is `--primary-text` (`#00587a`, 7.84:1 on white), stocks `--positive` (`#2ead4b`). `--positive` is 2.92:1 on white, just under the 3:1 line target; it is a deliberate exception so the green differs from the dark blue in lightness as well as hue (`--positive-deep` was too close to the blue). The legend word carries the meaning, and the tooltip rows are ink text with a coloured disc, so no text is set in `--positive`. The single-series area fill follows the line: `--primary-pale` or `--positive-pale`. Summary figures stay ink.
 7. **Checkboxes and radios use ink.** `accent-color: var(--ink)` on `field-taxEnabled`, `field-inflationEnabled`, `goal-taxEnabled`, `goal-inflationEnabled`, and the goal radios. They are not an accent fill. The wordmark disc stays the only one.
 
 ## Implementation choices
@@ -467,8 +467,8 @@ Series colours are text tokens that clear 3:1 on `--canvas`:
 
 | Series | Token | Resolved at cyan | Where it is passed |
 |---|---|---|---|
-| Savings, or a single balance | `--negative` (was `--ink`, see Decision 8) | `#d03238` (4.9:1 on white) | `savings.tsx` balance. `compare.tsx` savings. `goal.tsx` balance when `vehicle === "savings"`. |
-| Stocks | `--positive-deep` (was `--primary-text`, see Decision 8) | `#054d28` | `stocks.tsx` nominal. `compare.tsx` stocks. `goal.tsx` balance when `vehicle === "stocks"`. |
+| Savings, or a single balance | `--primary-text` (was `--ink`, see Decision 8) | `#00587a` (7.84:1 on white) | `savings.tsx` balance. `compare.tsx` savings. `goal.tsx` balance when `vehicle === "savings"`. |
+| Stocks | `--positive` (was `--primary-text`, see Decision 8) | `#2ead4b` (2.92:1, exception) | `stocks.tsx` nominal. `compare.tsx` stocks. `goal.tsx` balance when `vehicle === "stocks"`. |
 | Today's euros | `--body` | `#454745` | `stocks.tsx` real, `compare.tsx` `stocksReal`, `goal.tsx` real. |
 | Goal target | `--text-3`, dashed `4 4` | `#5f615d` | `goal.tsx` `target`. The legend still says "Target". |
 
@@ -478,10 +478,10 @@ Pass `stroke="var(--ink)"` (and the siblings). Recharts writes that onto the SVG
 
 - Grid: `stroke="var(--hairline)"`, vertical still off. The grid is decorative, not a series.
 - Tick fill: `var(--text-3)`, `fontSize` 12 (`--fs-caption`).
-- Single series keeps the area chart. Fill is flat, opacity 1, and follows the stroke: `var(--negative-pale)` under savings, `var(--positive-pale)` under stocks (Decision 8; originally `--primary-pale` under an ink stroke). Delete `fillOpacity={0.16}`. The pale step is a tint behind the series line, not a thin mark.
+- Single series keeps the area chart. Fill is flat, opacity 1, and follows the stroke: `var(--primary-pale)` under savings, `var(--positive-pale)` under stocks (Decision 8). Delete `fillOpacity={0.16}`. The pale step is a tint behind the series line, not a thin mark.
 - Two or more series keep the line chart, no area.
 - `isAnimationActive={false}` stays, so the chart does not depend on the reduced-motion duration tokens.
-- Tooltip: white card, `--radius-md`, `--shadow-md`, ink text. Series names use the same tokens as the strokes. Set `cursor={false}` so the default grey cursor band does not introduce another colour.
+- Tooltip: white card, `--radius-md`, `--shadow-md`, ink text. Each row has an 8px disc in the stroke token; the text stays ink (Decision 8). Set `cursor={false}` so the default grey cursor band does not introduce another colour.
 - Legend: the word plus an 8px disc (`size-2`, `--space-sm`). The word is the meaning. The disc uses the same token as the stroke.
 
 ---

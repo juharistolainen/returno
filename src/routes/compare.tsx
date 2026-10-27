@@ -48,8 +48,8 @@ function ComparePage() {
   const difference = comparison.nominalDifference;
   const ahead = difference > 0 ? "Stocks end ahead" : difference < 0 ? "Savings end ahead" : "They end even";
   const series = [
-    { dataKey: "savings", label: "Savings", color: "var(--negative)" },
-    { dataKey: "stocks", label: "Stocks", color: "var(--positive-deep)" },
+    { dataKey: "savings", label: "Savings", color: "var(--primary-text)" },
+    { dataKey: "stocks", label: "Stocks", color: "var(--positive)" },
     ...(scenario.inflationEnabled
       ? [{ dataKey: "stocksReal", label: "Stocks in today's euros", color: "var(--body)" }]
       : []),

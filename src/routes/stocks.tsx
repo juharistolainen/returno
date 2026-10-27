@@ -33,10 +33,10 @@ function StocksPage() {
   }));
   const series = scenario.inflationEnabled
     ? [
-        { dataKey: "balance", label: "Nominal balance", color: "var(--positive-deep)", fill: "var(--positive-pale)" },
+        { dataKey: "balance", label: "Nominal balance", color: "var(--positive)", fill: "var(--positive-pale)" },
         { dataKey: "real", label: "Today's euros", color: "var(--body)" },
       ]
-    : [{ dataKey: "balance", label: "Balance", color: "var(--positive-deep)", fill: "var(--positive-pale)" }];
+    : [{ dataKey: "balance", label: "Balance", color: "var(--positive)", fill: "var(--positive-pale)" }];
 
   return (
     <>

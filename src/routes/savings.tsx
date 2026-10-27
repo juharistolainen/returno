@@ -53,7 +53,7 @@ function SavingsPage() {
                 : []),
             ]}
           />
-          <GrowthChart data={chart} series={[{ dataKey: "balance", label: "Balance", color: "var(--negative)", fill: "var(--negative-pale)" }]} label="Growth" />
+          <GrowthChart data={chart} series={[{ dataKey: "balance", label: "Balance", color: "var(--primary-text)", fill: "var(--primary-pale)" }]} label="Growth" />
           <YearTable
             rows={projection.rows}
             caption="Savings balance at the end of each year"
