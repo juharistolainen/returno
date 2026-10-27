@@ -1,4 +1,4 @@
-name: Release static site
+name: Release site
 
 on:
   push:
@@ -25,23 +25,37 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Test
         run: npm test
 
-      - name: Package root-path site
+      - name: Build
+        run: npm run build
+
+      - name: Build worker
+        run: npm run build:worker
+
+      - name: Package site zip
         run: npm run package:site
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
-          files: returno-*.zip
+          files: |
+            returno-*.zip
+            worker.mjs
           overwrite_files: true
           generate_release_notes: false
           body: |
-            Static website build served from the site root (`/`).
+            Cloudflare Worker build for https://returno.site.
 
-            Download `returno-<version>.zip` and upload it to a static host. On Cloudflare Pages, create a project, choose **Upload assets**, and upload the zip. Do not put the files in an extra folder. `_redirects` sends `/savings`, `/stocks`, `/compare`, and `/goal` to the app.
+            `worker.mjs` is the self-contained Worker script. Deploy it to the `returno` Worker by hand, and only when the owner asks. A merge or a tag does not deploy.
 
-            This is the root-path build. It is not a GitHub Pages deploy.
+            `returno-<version>.zip` is the same prerendered site, with `index.html` at the top of the archive. It is kept so the files can be inspected or hosted elsewhere. Production responses come from the Worker: unknown paths return 404, and methods other than GET and HEAD return 405.
 
             Estimates only, not financial advice.

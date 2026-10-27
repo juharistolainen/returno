@@ -9,7 +9,6 @@
     "dev": "vite",
     "build": "tsc -b && vite build && node --experimental-strip-types scripts/prerender.mjs",
     "build:worker": "node scripts/build-worker.mjs",
-    "build:pages": "tsc -b && vite build --mode pages",
     "package:site": "npm run build && python3 scripts/zip-site.py",
     "preview": "vite preview",
     "test": "vitest run",

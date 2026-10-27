@@ -12,6 +12,7 @@ const assets = {
   "/compare/index.html": { ct: contentType("/compare/index.html") },
   "/goal/index.html": { ct: contentType("/goal/index.html") },
   "/404.html": { ct: contentType("/404.html"), t: "missing" },
+  "/_redirects": { ct: "text/plain; charset=utf-8", t: "/* /index.html 200" },
   "/robots.txt": { ct: contentType("/robots.txt") },
   "/sitemap.xml": { ct: contentType("/sitemap.xml") },
   "/llms.txt": { ct: contentType("/llms.txt") },
@@ -23,7 +24,8 @@ const assets = {
 };
 
 function respond(url, method = "GET", scriptHashes = []) {
-  return handleRequest(new Request(url, { method }), assets, (path) => `body:${path}`, scriptHashes);
+  // Pass the URL string through. `new Request` would delete `%2e%2e` before the router sees it.
+  return handleRequest({ url, method }, assets, (path) => `body:${path}`, scriptHashes);
 }
 
 function expectSecurityHeaders(headers) {
@@ -81,6 +83,54 @@ describe("worker routing", () => {
     const root = respond("https://returno.site/index.html");
     expect(root.status).toBe(301);
     expect(new URL(String(root.headers.location)).href).toBe("https://returno.site/");
+  });
+
+  it("does not publish the not-found document or a redirects file", () => {
+    for (const path of ["/_redirects", "/404.html", "/404.html/"]) {
+      const res = respond(`https://returno.site${path}`);
+      expect(res.status).toBe(404);
+      expect(res.body).toBe("body:/404.html");
+      expect(res.headers.location).toBeUndefined();
+    }
+  });
+
+  it("keeps open-redirect paths on https://returno.site", () => {
+    for (const path of ["//evil.com/", "/%2F%2Fevil.com/", "/%2f%2fevil.com/"]) {
+      const res = respond(`https://returno.site${path}`);
+      expect(res.status).toBe(301);
+      const location = new URL(String(res.headers.location));
+      expect(location.origin).toBe("https://returno.site");
+      expect(location.hostname).toBe("returno.site");
+      expect(location.protocol).toBe("https:");
+      expect(location.pathname.startsWith("//")).toBe(false);
+      expect(location.pathname).toBe("/evil.com");
+    }
+
+    const host = respond("https://evil.com/savings?kept=1");
+    expect(host.status).toBe(301);
+    expect(host.headers.location).toBe("https://returno.site/savings?kept=1");
+    expect(new URL(String(host.headers.location)).hostname).toBe("returno.site");
+  });
+
+  it("strips encoded CR and LF instead of reflecting them", () => {
+    const cleaned = respond("https://returno.site/savings%0d%0a");
+    expect(cleaned.status).toBe(301);
+    expect(cleaned.headers.location).toBe("https://returno.site/savings");
+    expect(cleaned.headers.location).not.toMatch(/\r|\n|%0d|%0a/i);
+
+    const injected = respond("https://returno.site/%0d%0aSet-Cookie:%20x");
+    expect(injected.status).toBe(301);
+    expect(injected.headers.location).toBe("https://returno.site/Set-Cookie:%20x");
+    expect(injected.headers.location).not.toMatch(/\r|\n|%0d|%0a/i);
+  });
+
+  it("rejects traversal, backslashes, and broken encodings", () => {
+    for (const path of ["/%2e%2e/", "/%2e%2e/savings", "/..%2f", "/savings/..%2fsecret", "/%5Cevil", "/%5cevil", "/foo\\bar", "/%", "/%zz", "/%2"]) {
+      const res = respond(`https://returno.site${path}`);
+      expect(res.status, path).toBe(404);
+      expect(res.body, path).toBe("body:/404.html");
+      expect(res.headers.location, path).toBeUndefined();
+    }
   });
 
   it("returns 404 with the not-found page for an unknown path", () => {

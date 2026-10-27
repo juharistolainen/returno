@@ -43,23 +43,46 @@ export function isWorkersDevHost(hostname) {
   return host === "workers.dev" || host.endsWith(".workers.dev");
 }
 
-/** Bare route, no trailing slash, and /index.html collapses to the route. */
+/** These files exist for the worker, but they are not public URLs. */
+const HIDDEN_PATHS = new Set(["/404.html", "/_redirects"]);
+
+/** Path from the request string, before the URL parser removes dot segments. */
+export function rawRequestPath(requestUrl) {
+  if (typeof requestUrl !== "string") return null;
+  const match = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(requestUrl);
+  if (!match) return null;
+  return match[1] === "" ? "/" : match[1];
+}
+
+/**
+ * Bare route, no trailing slash, and /index.html collapses to the route.
+ * `pathname` is the raw request path, still percent-encoded. Dot segments,
+ * backslashes, and broken encodings are rejected. CR and LF are stripped.
+ */
 export function canonicalPathname(pathname) {
-  let path;
+  if (typeof pathname !== "string" || pathname === "") return null;
+  if (pathname.includes("\\") || /%5c/i.test(pathname)) return null;
+  let decoded;
   try {
-    path = decodeURIComponent(pathname);
+    decoded = decodeURIComponent(pathname);
   } catch {
     return null;
   }
-  if (!path.startsWith("/")) path = `/${path}`;
-  if (path.includes("\0") || path.includes("\\")) return null;
-  if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
-  if (path === "/index.html") return "/";
-  if (path.endsWith("/index.html")) {
-    path = path.slice(0, -"/index.html".length);
-    if (path === "") return "/";
+  if (decoded.includes("\0") || decoded.includes("\\")) return null;
+  decoded = decoded.replace(/\r|\n/g, "");
+  if (!decoded.startsWith("/")) decoded = `/${decoded}`;
+  decoded = decoded.replace(/\/{2,}/g, "/");
+  if (decoded.length > 1 && decoded.endsWith("/")) decoded = decoded.slice(0, -1);
+  const segments = decoded.split("/");
+  for (let index = 1; index < segments.length; index += 1) {
+    if (segments[index] === "." || segments[index] === "..") return null;
   }
-  return path;
+  if (decoded === "/index.html") decoded = "/";
+  else if (decoded.endsWith("/index.html")) {
+    decoded = decoded.slice(0, -"/index.html".length) || "/";
+  }
+  if (HIDDEN_PATHS.has(decoded)) return null;
+  return decoded;
 }
 
 function cacheControl(assetPath) {
@@ -69,6 +92,7 @@ function cacheControl(assetPath) {
 }
 
 function lookup(pathname, assets) {
+  if (HIDDEN_PATHS.has(pathname)) return null;
   if (assets[pathname]) return pathname;
   const index = `${pathname === "/" ? "" : pathname}/index.html`;
   if (assets[index]) return index;
@@ -143,25 +167,21 @@ export function resolveRequest(req, assets, scriptHashes = []) {
     return { status: 405, headers, body: "Method Not Allowed", asset: null };
   }
 
-  const canonical = canonicalPathname(url.pathname);
+  const rawPath = rawRequestPath(req.url);
+  const canonical = rawPath == null ? null : canonicalPathname(rawPath);
   if (canonical == null) return notFound(headers, assets);
 
-  let decoded = url.pathname;
-  try {
-    decoded = decodeURIComponent(url.pathname);
-  } catch {
-    return notFound(headers, assets);
-  }
   const hostIsCanonical = url.hostname.toLowerCase() === CANONICAL_HOST;
   const hostAllowed = hostIsCanonical || isWorkersDevHost(url.hostname);
-  if (!hostAllowed || canonical !== decoded) {
-    const dest = new URL(url);
-    dest.pathname = canonical;
-    if (!hostAllowed) {
-      dest.protocol = "https:";
-      dest.hostname = CANONICAL_HOST;
-      dest.port = "";
+  if (!hostAllowed || rawPath !== canonical) {
+    const dest = new URL("https://returno.site/");
+    if (hostAllowed) {
+      dest.protocol = url.protocol === "http:" ? "http:" : "https:";
+      dest.hostname = url.hostname;
+      dest.port = url.port;
     }
+    dest.pathname = canonical;
+    dest.search = url.search;
     headers.location = dest.toString();
     headers["cache-control"] = "public, max-age=0, must-revalidate";
     return { status: 301, headers, body: "", asset: null };

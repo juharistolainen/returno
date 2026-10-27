@@ -1,4 +1,9 @@
-"""Zip dist/ with files at the archive root, for static-host upload."""
+"""Zip dist/ with files at the archive root.
+
+The archive is a snapshot of the prerendered site. Production is the
+Cloudflare Worker, which embeds the same files and does not route to
+`_redirects` or `/404.html`.
+"""
 
 import json
 import zipfile
@@ -18,7 +23,7 @@ with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zipped:
             zipped.write(path, path.relative_to(dist).as_posix())
 
 names = zipfile.ZipFile(archive).namelist()
-required = {"index.html", "_redirects", "404.html"}
+required = {"index.html", "404.html"}
 missing = required - set(names)
 if missing:
     raise SystemExit(f"{archive.name} is missing {', '.join(sorted(missing))}")
