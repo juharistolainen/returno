@@ -1,4 +1,4 @@
-import { createRoute, useSearch } from "@tanstack/react-router";
+import { createRoute } from "@tanstack/react-router";
 import { GoalForm } from "../components/GoalForm.tsx";
 import { GrowthChart } from "../components/GrowthChart.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
@@ -9,10 +9,10 @@ import { requirePage } from "../content/seo.ts";
 import { formatChartYear, formatEur } from "../lib/format.ts";
 import { goalChart, monthsUntil, planGoal, type GoalInput } from "../lib/goal.ts";
 import { sessionToday } from "../lib/session-today.ts";
-import { validateSearch } from "../lib/search.ts";
+import { calculatorSearch, validateSearch } from "../lib/search.ts";
 import type { Scenario } from "../lib/scenario.ts";
 import { rootRoute } from "./root.tsx";
-import { useReplaceScenario } from "./scenario-page.tsx";
+import { useReplaceScenario, useShownScenario } from "./scenario-page.tsx";
 
 const goalSeo = requirePage("/goal");
 
@@ -20,11 +20,12 @@ export const goalRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/goal",
   validateSearch,
+  search: calculatorSearch,
   component: GoalPage,
 });
 
 function GoalPage() {
-  const scenario = useSearch({ from: goalRoute.id });
+  const scenario = useShownScenario();
   const update = useReplaceScenario(scenario);
   const plan = planGoal(goalInput(scenario, sessionToday));
   const chart = goalChart(scenario.balance, plan.projection).map((point) => ({

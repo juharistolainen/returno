@@ -126,6 +126,16 @@ export function resolveScenario(search: Record<string, unknown>, stored: Scenari
   return parseScenario(search);
 }
 
+/**
+ * Same rule as `resolveScenario`, using the address-bar query rather than the
+ * validated search object. The router copies validated search back into the URL,
+ * so a saved scenario must not be part of that object.
+ */
+export function scenarioFromLocation(search: Scenario, searchStr: string, stored: Scenario | null): Scenario {
+  if (searchStr === "" || searchStr === "?") return stored ?? search;
+  return search;
+}
+
 export type FieldParse = number | "incomplete" | "invalid";
 
 /** Parse a typed amount. A trailing separator stays incomplete so "2." can become "2.5". */
@@ -138,8 +148,17 @@ export function parseUserNumber(raw: string): FieldParse {
   return Number.isFinite(value) ? value : "invalid";
 }
 
-export function scenarioToSearch(scenario: Scenario): Record<string, string | number | boolean> {
-  return { ...scenario };
+/** Params that differ from the defaults. Equal values are left out, so a default scenario has no query string. */
+export function scenarioToSearch(scenario: Scenario): Partial<Scenario> {
+  const search: Partial<Scenario> = {};
+  for (const key of Object.keys(defaultScenario) as (keyof Scenario)[]) {
+    if (scenario[key] !== defaultScenario[key]) assignSearch(search, key, scenario[key]);
+  }
+  return search;
+}
+
+function assignSearch<K extends keyof Scenario>(search: Partial<Scenario>, key: K, value: Scenario[K]) {
+  search[key] = value;
 }
 
 export type NumericScenarioKey =

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, Outlet, useLocation, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { isCalculatorPath } from "../lib/paths.ts";
-import { defaultScenario, parseScenario, type Scenario } from "../lib/scenario.ts";
+import { defaultScenario, resolveScenario, scenarioEqual, scenarioToSearch, type Scenario } from "../lib/scenario.ts";
 import { readStoredScenario, writeStoredScenario } from "../lib/storage.ts";
 
 const views = [
@@ -36,7 +36,7 @@ export function RootLayout() {
                 <Link
                   key={view.to}
                   to={view.to}
-                  search={scenario}
+                  search={scenarioToSearch(scenario) as Scenario}
                   className="rounded-full px-3 py-1.5 text-center text-muted aria-[current=page]:bg-card aria-[current=page]:text-ink aria-[current=page]:shadow-sm"
                 >
                   {view.label}
@@ -79,7 +79,7 @@ export function NotFound() {
       <p className="mt-2 text-muted">The calculators live on Savings, Stocks, Compare, and Goal.</p>
       <Link
         to="/savings"
-        search={defaultScenario}
+        search={scenarioToSearch(defaultScenario) as Scenario}
         className="mt-6 inline-block font-medium text-savings underline underline-offset-4"
       >
         Open the savings calculator
@@ -89,33 +89,23 @@ export function NotFound() {
 }
 
 function useLeafScenario(): Scenario {
-  const search = useRouterState({
-    select: (state) => state.matches[state.matches.length - 1]?.search,
-  });
-  const record = isRecord(search) ? search : {};
-  if (Object.keys(record).length === 0) return readStoredScenario() ?? defaultScenario;
-  return parseScenario(record);
+  const location = useLocation();
+  const raw = isRecord(location.search) ? location.search : {};
+  return resolveScenario(raw, readStoredScenario());
 }
 
 function PersistScenario() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const search = useRouterState({
-    select: (state) => state.matches[state.matches.length - 1]?.search,
-  });
 
   useEffect(() => {
-    if (!isRecord(search)) return;
-    const scenario = parseScenario(search);
-    writeStoredScenario(scenario);
-    const pathname = location.pathname;
-    if (
-      isCalculatorPath(pathname) &&
-      (location.searchStr === "" || location.searchStr === "?")
-    ) {
-      void navigate({ to: pathname, search: scenario, replace: true });
-    }
-  }, [location.pathname, location.searchStr, navigate, search]);
+    // Remember the scenario the calculator is showing. Leave the URL alone:
+    // a visit with no query stays bare until the person edits a field.
+    if (!isCalculatorPath(location.pathname)) return;
+    const raw = isRecord(location.search) ? location.search : {};
+    const shown = resolveScenario(raw, readStoredScenario());
+    const stored = readStoredScenario();
+    if (!stored || !scenarioEqual(stored, shown)) writeStoredScenario(shown);
+  }, [location.pathname, location.search]);
 
   return null;
 }

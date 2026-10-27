@@ -62,6 +62,13 @@ describe("worker routing", () => {
     }
   });
 
+  it("serves a query string as-is instead of redirecting it away", () => {
+    const res = respond("https://returno.site/savings?balance=10000&years=20");
+    expect(res.status).toBe(200);
+    expect(res.headers.location).toBeUndefined();
+    expect(res.body).toBe("body:/savings/index.html");
+  });
+
   it("redirects a trailing slash and an index.html URL to the bare route", () => {
     const slash = respond("https://returno.site/savings/");
     expect(slash.status).toBe(301);

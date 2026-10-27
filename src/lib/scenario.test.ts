@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { defaultParseSearch, defaultStringifySearch } from "@tanstack/react-router";
 import {
   defaultScenario,
   numberFieldError,
@@ -6,7 +7,9 @@ import {
   parseUserNumber,
   resolveScenario,
   scenarioFromForm,
+  scenarioFromLocation,
   scenarioToFormValues,
+  scenarioToSearch,
 } from "./scenario.ts";
 
 describe("parseScenario", () => {
@@ -76,6 +79,16 @@ describe("parseScenario", () => {
   });
 });
 
+describe("scenarioFromLocation", () => {
+  it("uses storage only when the address bar has no query", () => {
+    const stored = { ...defaultScenario, balance: 42, years: 7 };
+    expect(scenarioFromLocation(defaultScenario, "", stored)).toEqual(stored);
+    expect(scenarioFromLocation(defaultScenario, "?", stored)).toEqual(stored);
+    const shared = { ...defaultScenario, balance: 5 };
+    expect(scenarioFromLocation(shared, "?balance=5", stored)).toEqual(shared);
+  });
+});
+
 describe("resolveScenario", () => {
   it("uses the stored scenario only when the URL has no search keys", () => {
     const stored = { ...defaultScenario, balance: 42, years: 7 };
@@ -94,6 +107,38 @@ describe("scenarioFromForm", () => {
     expect(scenarioFromForm({ ...values, fee: "25" })).toBeNull();
     expect(numberFieldError("years", "1.5")).toMatch(/whole number/);
     expect(numberFieldError("balance", "2.")).toBeUndefined();
+  });
+});
+
+describe("scenarioToSearch", () => {
+  it("emits no query string for the default scenario", () => {
+    expect(scenarioToSearch(defaultScenario)).toEqual({});
+    expect(defaultStringifySearch(scenarioToSearch(defaultScenario))).toBe("");
+  });
+
+  it("serializes only values that differ from the defaults and round-trips them", () => {
+    const custom = {
+      ...defaultScenario,
+      balance: 5_000,
+      years: 7,
+      taxEnabled: true,
+      vehicle: "stocks" as const,
+      targetDate: "2040-01-15",
+    };
+    const search = scenarioToSearch(custom);
+    expect(search).toEqual({
+      balance: 5_000,
+      years: 7,
+      taxEnabled: true,
+      vehicle: "stocks",
+      targetDate: "2040-01-15",
+    });
+    expect(search).not.toHaveProperty("contribution");
+    expect(search).not.toHaveProperty("savingsRate");
+    const query = defaultStringifySearch(search);
+    expect(query.startsWith("?")).toBe(true);
+    expect(query).not.toContain("contribution=");
+    expect(parseScenario(defaultParseSearch(query))).toEqual(custom);
   });
 });
 

@@ -16,10 +16,12 @@ import {
   seoPages,
   sitemapXml,
 } from "../src/content/seo.ts";
+import { assertVerificationMeta } from "./verification-meta.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
 const shell = readFileSync(join(dist, "index.html"), "utf8");
+assertVerificationMeta(shell, "vite shell");
 const lastmod = new Date().toISOString().slice(0, 10);
 const image = `${SITE_ORIGIN}${OG_IMAGE_PATH}`;
 
@@ -35,19 +37,20 @@ for (const page of seoPages) {
   const file = page.path === "/" ? join(dist, "index.html") : join(dist, page.path.slice(1), "index.html");
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, html);
+  assertVerificationMeta(html, page.path);
 }
 
-writeFileSync(
-  join(dist, "404.html"),
-  renderDocument(shell, {
-    title: "Page not found — Returno",
-    description: "That address is not a Returno calculator.",
-    robots: "noindex",
-    canonical: null,
-    jsonLd: null,
-    body: `<main><h1>That page is not here</h1><p>The calculators live on Savings, Stocks, Compare, and Goal.</p><p><a href="/">Back to Returno</a></p></main>`,
-  }),
-);
+const notFoundHtml = renderDocument(shell, {
+  title: "Page not found — Returno",
+  description: "That address is not a Returno calculator.",
+  robots: "noindex",
+  canonical: null,
+  jsonLd: null,
+  body: `<main><h1>That page is not here</h1><p>The calculators live on Savings, Stocks, Compare, and Goal.</p><p><a href="/">Back to Returno</a></p></main>`,
+});
+assertVerificationMeta(notFoundHtml, "/404.html");
+writeFileSync(join(dist, "404.html"), notFoundHtml);
+assertVerificationMeta(readFileSync(join(dist, "index.html"), "utf8"), "prerendered /");
 
 writeFileSync(join(dist, "sitemap.xml"), sitemapXml(lastmod));
 writeFileSync(join(dist, "llms.txt"), llmsTxt());

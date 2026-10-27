@@ -1,4 +1,4 @@
-import { createRouter } from "@tanstack/react-router";
+import { createRouter, type RouterHistory } from "@tanstack/react-router";
 import { compareRoute } from "./routes/compare.tsx";
 import { goalRoute } from "./routes/goal.tsx";
 import { homeRoute } from "./routes/home.tsx";
@@ -14,10 +14,15 @@ function routerBasepath(): string | undefined {
   return base.endsWith("/") ? base.slice(0, -1) : base;
 }
 
-export const router = createRouter({
-  routeTree,
-  basepath: routerBasepath(),
-});
+export function createReturnoRouter(history?: RouterHistory) {
+  return createRouter({
+    routeTree,
+    basepath: routerBasepath(),
+    ...(history ? { history, isServer: false, origin: "http://localhost" } : {}),
+  });
+}
+
+export const router = createReturnoRouter();
 
 declare module "@tanstack/react-router" {
   interface Register {

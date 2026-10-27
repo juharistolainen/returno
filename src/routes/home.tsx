@@ -1,7 +1,7 @@
 import { Link, createRoute } from "@tanstack/react-router";
 import { SeoBlock } from "../components/SeoBlock.tsx";
 import { requirePage } from "../content/seo.ts";
-import { defaultScenario } from "../lib/scenario.ts";
+import { defaultScenario, scenarioToSearch, type Scenario } from "../lib/scenario.ts";
 import { readStoredScenario } from "../lib/storage.ts";
 import { rootRoute } from "./root.tsx";
 
@@ -46,7 +46,7 @@ function CalculatorLink({
 }) {
   return (
     <li>
-      <Link to={to} search={scenario} className="block rounded-2xl border border-line bg-card px-4 py-4">
+      <Link to={to} search={scenarioToSearch(scenario) as Scenario} className="block rounded-2xl border border-line bg-card px-4 py-4">
         <span className="font-display text-2xl">{title}</span>
         <span className="mt-1 block text-sm text-muted">{text}</span>
       </Link>
