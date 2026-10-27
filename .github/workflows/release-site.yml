@@ -1,0 +1,46 @@
+name: Release static site
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Package root-path site
+        run: npm run package:site
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: returno-*.zip
+          overwrite_files: true
+          generate_release_notes: false
+          body: |
+            Static website build served from the site root (`/`).
+
+            Download `returno-<version>.zip` and upload it to a static host. On Cloudflare Pages, create a project, choose **Upload assets**, and upload the zip. Do not put the files in an extra folder. `_redirects` sends `/savings`, `/stocks`, and `/compare` to the app.
+
+            This is not the GitHub Pages build. That build uses the `/returno/` base path and is published by the Pages workflow.
+
+            Estimates only, not financial advice.
