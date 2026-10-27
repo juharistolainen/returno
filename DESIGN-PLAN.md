@@ -14,7 +14,7 @@ Inventory below is from `main` at `0f32307` (v0.3.4). The design export was read
 
 Copied from the playbook. Every phase inherits them.
 
-- One accent for the whole site, set once with `<html data-accent="…">`. Options: `lime` (package default), `cyan`, `apricot`, `amber`, `lilac`.
+- One accent for the whole site: `<html data-accent="cyan">`. The package also ships lime, apricot, amber, and lilac. Returno uses cyan.
 - One accent-filled element per view.
 - Text on an accent fill is `--on-primary`. An accent base colour is never text, a thin line, or a meaningful icon on a light surface. Links and small accent text use `--primary-text`.
 - `--chart-1` and `--chart-2` are for dark panels only. A third category colour, when used on a dark panel, is `--apricot-base`.
@@ -28,9 +28,17 @@ Copied from the playbook. Every phase inherits them.
 - Presentation only. Same copy, URLs, form names, and behaviour. No new pages, no dark mode, no second UI library, no font other than Figtree for display and body.
 - Self-hosted fonts only. Do not deploy, tag, or release from a design PR. The owner publishes the Worker.
 
-## Decisions to implement
+## Decisions
 
-These are the recommendations. The open questions at the end are the ones that change the plan if Juha picks differently.
+Recorded 2026-10-27, from Juha.
+
+1. **Accent is cyan.** `<html data-accent="cyan">`. Lime stays unused: it is Wise's brand colour, and this is a public product. With cyan, `wise-ds.css` rewrites `--chart-1` from `--cyan-base` to `--lime-base`. Charts do not use that variable. See Charts.
+2. **Charts stay on white cards.** No dark chart panel. Series colours are `--ink`, `--primary-text` (`--cyan-text` `#00587a`), `--body`, and `--text-3`. No accent base (`--cyan-base` `#38c8ff`, `--lime-base` `#9fe870`, `--lilac-base`, `--apricot-base`) as text, a chart stroke, a legend dot, or any other thin mark on a light surface.
+3. **Favicon and `og.png` stay as they are.** Do not edit `public/favicon.svg`, `scripts/og-image.mjs`, or `public/og.png`. Their current hexes are a listed exception.
+4. **Screen titles are 32px.** Calculator pages and both 404 pages use `display-sm` (32px, weight 600). The home `h1` uses `display-md` (40px, weight 900).
+5. **Both 404 links say "Open the savings calculator" and point at `/savings`.** That label names the page it opens. "Back to Returno" does not. The heading "That page is not here" and the sentence under it stay. This is the one copy change in the retrofit.
+
+## Implementation choices
 
 **Components.** Reimplement with the CSS classes. Do not use `react/wise-ds.react.js`.
 
@@ -38,19 +46,7 @@ The runtime file is an IIFE that reads `window.React` and assigns `window.WiseDS
 
 Typed wrappers, only where the markup repeats: a field row and a metric tile, in `src/components/`, emitting the classes from `patterns.md`. Everywhere else, put the classes on the elements that already exist.
 
-**Accent.** `apricot`.
-
-| Accent | Why it loses or wins |
-|---|---|
-| Lime `#9fe870` | Package default and Wise's own brand colour. Returno is a public site. Skip it. |
-| Amber `#ffd11a` | Same hex as `--warning`. A warning and the brand would be one colour. |
-| Cyan | Rewrites `--chart-1` to `--lime-base`, so Wise lime reappears in any chart that uses the chart tokens. |
-| Lilac | Rewrites `--chart-2` to `--lime-base`. Same problem. |
-| Apricot | Leaves `--chart-1` (cyan) and `--chart-2` (lilac) alone. Does not share a hex with positive, warning, or negative. `--primary-text` is `--apricot-text` `#8a3b00` (7.76:1 on white, 6.45:1 on sage). Closest of the five to the current warm paper and terracotta. |
-
-Set it in `index.html`: `<html lang="en" data-accent="apricot">`. The attribute survives prerender because prerender edits the Vite shell. Cyan is the fallback if Juha wants a cool accent; charts then stay off `--chart-1`.
-
-**The one accent fill** is the wordmark disc (the rounded square behind the sparkline in `Mark`). Copy, nav, figures, and checkboxes do not take an accent fill. Links that are accent-coloured use `--primary-text`.
+**The one accent fill** is the wordmark disc (the rounded square behind the sparkline in `Mark`), filled with `--primary` (`--cyan-base`) and drawn in `--on-primary` (`#001f2e`). Copy, nav, figures, and checkboxes do not take an accent fill. Links use `--primary-text` (`#00587a`), which is the text step, not the cyan base. The on-page mark follows the accent. `public/favicon.svg` and `public/og.png` do not.
 
 ---
 
@@ -75,7 +71,7 @@ Set it in `index.html`: `<html lang="en" data-accent="apricot">`. The attribute 
 | `src/components/GrowthChart.tsx` and the four route files that pass `color` | Chart strokes. |
 | `src/components/YearTable.tsx`, `src/components/SeoBlock.tsx` | Table and the article. |
 | `scripts/prerender.mjs` | No-JS HTML, including the stamp and the static 404. |
-| `public/favicon.svg`, `scripts/og-image.mjs`, `public/og.png` | Logo-coloured assets. Phase 7, after the accent is confirmed. |
+| `public/favicon.svg`, `scripts/og-image.mjs`, `public/og.png` | Unchanged. Current teal mark stays. |
 
 Do not copy `react/wise-ds.react.js`, `patterns.html`, `example.html`, or `assets/logo-mark.svg` into the app. The logo file is a placeholder mark, not Returno's.
 
@@ -85,7 +81,7 @@ Do not copy `react/wise-ds.react.js`, `patterns.html`, `example.html`, or `asset
 
 **Files:** the vendored CSS and fonts above. Modify `src/index.css`, `src/main.tsx`, `index.html`, `package.json`.
 
-**Produces:** `:root` tokens from `wise-ds.css`, Figtree loading from the built CSS, `data-accent="apricot"` on the shell. Tailwind colour utilities still point at the old hexes, so the palette does not flip in this phase. Type does flip, because `--font-sans` and `--font-display` become Figtree together.
+**Produces:** `:root` tokens from `wise-ds.css`, Figtree loading from the built CSS, `data-accent="cyan"` on the shell. Tailwind colour utilities still point at the old hexes, so the palette does not flip in this phase. Type does flip, because `--font-sans` and `--font-display` become Figtree together.
 
 ### Where the files go
 
@@ -141,7 +137,7 @@ Replace the font imports in `src/main.tsx` (today `@fontsource/dm-sans` latin 40
 .rounded-full { border-radius: var(--radius-pill); }
 ```
 
-`index.html` head stays as it is (verification metas included). Set `data-accent="apricot"` on `<html>`. Do not add `class="wds"` yet, and do not import `wise-ds-base.css` yet.
+`index.html` head stays as it is (verification metas included). Set `data-accent="cyan"` on `<html>`. Do not add `class="wds"` yet, and do not import `wise-ds-base.css` yet.
 
 Remove `@fontsource/dm-sans` and `@fontsource/fraunces` from `package.json` and the lockfile in this phase so the build stops emitting a second pair of families.
 
@@ -156,7 +152,7 @@ After `npm run build`, read the last declaration in `dist/assets/*.css`:
 - `--radius-xl` is `24px`
 - `--radius-md` is `12px`
 - `--shadow-lg` contains `rgba(14, 15, 12`
-- `[data-accent="apricot"]` sets `--primary: var(--apricot-base)`
+- `[data-accent="cyan"]` sets `--primary: var(--cyan-base)` and `--chart-1: var(--lime-base)`
 
 If Tailwind's theme block lands later and `--radius-xl` is `0.75rem`, add `src/styles/token-wins.css` and `@import` it last, unlayered, restating only the colliding properties with the values from `wise-ds.css` (`--font-display`, `--font-body`, the radius block, the three shadows). The phase is done when the grep matches. Do not rename the system's variables.
 
@@ -223,7 +219,7 @@ Replace the colour entries in `@theme`:
 }
 ```
 
-`text-savings` through this phase is apricot-brown on purpose. Phase 3 deletes the uses that are not links. Say that in the PR body so the review does not treat the brown eyebrows as the end state.
+`text-savings` through this phase resolves to `--primary-text` (`#00587a`) on purpose. Phase 3 deletes the uses that are not links. Say that in the PR body so the review does not treat the blue eyebrows as the end state.
 
 Tailwind's `/80` modifiers need a colour they can decompose. `var(--hairline)` does not survive `border-line/80`. Drop the alpha instead of inventing a new colour. The system wants flat fills.
 
@@ -359,7 +355,7 @@ One shell, `RootLayout` in `src/components/AppShell.tsx`, wraps every matched ro
 | `/compare` | `src/routes/compare.tsx` | Intro, full-width form, summary, multi-series chart, table, SEO. |
 | `/goal` | `src/routes/goal.tsx` | Intro, goal form, status sentence, summary, chart, table, SEO. |
 | Unknown, with JS | `NotFound` in `AppShell.tsx` | Card, h1 "That page is not here", link to `/savings` with the default scenario search. Sets `noindex`. |
-| Unknown, without JS | `scripts/prerender.mjs` writes `dist/404.html` | h1, the same sentence, link "Back to Returno" to `/`, then the build stamp. Worker returns status 404. |
+| Unknown, without JS | `scripts/prerender.mjs` writes `dist/404.html` | Today: h1, the same sentence, link "Back to Returno" to `/`, then the build stamp. The plan changes that link to "Open the savings calculator" at `/savings`. Worker returns status 404. |
 | Prerendered documents | `scripts/prerender.mjs` `renderPage` | `/`, `/savings`, `/stocks`, `/compare`, `/goal`. Nav of those paths, eyebrow, h1, lede, sections, FAQ, the short disclaimer, then the stamp. `createRoot` in `src/main.tsx` replaces `#root` on boot, so this HTML is what crawlers and no-JS visitors see. |
 
 Shared pieces: `PageIntro`, `ScenarioForm` (modes `savings`, `stocks`, `compare`), `GoalForm`, `Summary`, `GrowthChart`, `YearTable`, `SeoBlock`, `BuildStamp`.
@@ -381,7 +377,7 @@ SEO copy lives in `src/content/seo.ts` and is not part of the visual map. Titles
 | `#0f6e62` as a link or the one emphasised action | `--primary-text` |
 | `#0f6e62` as a fill (logo, focus, copy button) | Logo disc: `--primary` with `--on-primary` strokes. Focus: `--focus-ring`. Copy button: secondary fill `--canvas-soft`, ink label. |
 | `#0f6e62` savings series | `--ink` stroke on the white chart card |
-| `#b4532a` stocks series | `--primary-text` (`#8a3b00` at the apricot accent) |
+| `#b4532a` stocks series | `--primary-text` (`--cyan-text` `#00587a`). Not `--primary`, not `--chart-1`. |
 | `#35557a` real series | `--body` |
 | `#b4532a` error text and borders | `--negative` border, `--negative-deep` message |
 | `#fde8dc` error wash | `--negative-pale` |
@@ -399,7 +395,7 @@ SEO copy lives in `src/content/seo.ts` and is not part of the visual map. Titles
 
 Exceptions, carried to the Phase 7 report:
 
-- `public/favicon.svg` and `public/og.png` until Phase 7 recolors them. Their hexes must then be the token hexes, written as literals because a favicon and a PNG cannot read `var()`.
+- `public/favicon.svg` and `public/og.png` keep today's hexes (`#0f6e62`, `#f4f0e7`, `#fffdf8`, `#f3c7a6`, and the og-image palette in `scripts/og-image.mjs`). Juha decided on 2026-10-27 to leave both assets alone. The on-page `Mark` in `AppShell.tsx` still uses `--primary` and `--on-primary`.
 - Chart plot height, table max height, the two grid tracks.
 - Recharts `strokeWidth` 2.25.
 - `format.ts` / `goal.ts` use of the word "rounded" for cents. That is arithmetic, not CSS.
@@ -430,26 +426,30 @@ Exceptions, carried to the Phase 7 report:
 
 ## Charts
 
-`GrowthChart.tsx` draws on a white card (`bg-card`). `--chart-1` (`#38c8ff`) is 1.93:1 on white and `--chart-2` (`#b1a1f0`) is 2.28:1. The playbook limits both to dark panels. `--positive` is 2.92:1 on white, under the 3:1 mark for a meaningful line. So the series colours are text tokens that clear 3:1 on `--canvas`:
+`GrowthChart.tsx` draws on a white card (`bg-card`). That stays. There is no dark chart panel.
 
-| Series | Token | Where it is passed |
-|---|---|---|
-| Savings, or a single balance | `--ink` | `savings.tsx` balance. `compare.tsx` savings. `goal.tsx` balance when `vehicle === "savings"`. |
-| Stocks | `--primary-text` | `stocks.tsx` nominal. `compare.tsx` stocks. `goal.tsx` balance when `vehicle === "stocks"`. |
-| Today's euros | `--body` | `stocks.tsx` real, `compare.tsx` `stocksReal`, `goal.tsx` real. |
-| Goal target | `--text-3`, dashed `4 4` | `goal.tsx` `target`. The legend still says "Target". |
+Cyan changes the chart tokens. From `wise-ds.css`, `[data-accent="cyan"]` sets `--chart-1: var(--lime-base)` (`#9fe870`). `--chart-2` stays `--lilac-base` (`#b1a1f0`). The default meaning of `--chart-1` is cyan (`#38c8ff`, 1.93:1 on white). After the accent switch it is Wise lime (1.47:1 on white). `--chart-2` is 2.28:1 on white. The playbook limits both to dark panels. `--primary` is the cyan base, and an accent base is not a thin line or text on a light surface. `--positive` is 2.92:1 on white, under the 3:1 mark for a meaningful line.
+
+Series colours are text tokens that clear 3:1 on `--canvas`:
+
+| Series | Token | Resolved at cyan | Where it is passed |
+|---|---|---|---|
+| Savings, or a single balance | `--ink` | `#0e0f0c` | `savings.tsx` balance. `compare.tsx` savings. `goal.tsx` balance when `vehicle === "savings"`. |
+| Stocks | `--primary-text` | `#00587a` (`--cyan-text`, 7.84:1 on white) | `stocks.tsx` nominal. `compare.tsx` stocks. `goal.tsx` balance when `vehicle === "stocks"`. |
+| Today's euros | `--body` | `#454745` | `stocks.tsx` real, `compare.tsx` `stocksReal`, `goal.tsx` real. |
+| Goal target | `--text-3`, dashed `4 4` | `#5f615d` | `goal.tsx` `target`. The legend still says "Target". |
+
+Do not pass `var(--chart-1)`, `var(--chart-2)`, `var(--primary)`, `var(--cyan-base)`, `var(--lime-base)`, or `var(--apricot-base)` as a stroke, fill of a line, or legend dot. `--primary-text` is the allowed accent-linked colour on white.
 
 Pass `stroke="var(--ink)"` (and the siblings). Recharts writes that onto the SVG. `style-src 'unsafe-inline'` already allows it. Delete the hex literals in the route files and in `GrowthChart.tsx` (`#eadfcd`, `#5e564c`, and `entry.color` as a raw paint).
 
-- Grid: `stroke="var(--hairline)"`, vertical still off.
+- Grid: `stroke="var(--hairline)"`, vertical still off. The grid is decorative, not a series.
 - Tick fill: `var(--text-3)`, `fontSize` 12 (`--fs-caption`).
-- Single series keeps the area chart. Fill is flat `var(--primary-pale)` with opacity 1, stroke `--ink`. Delete `fillOpacity={0.16}`.
+- Single series keeps the area chart. Fill is flat `var(--primary-pale)` (`--cyan-pale` `#d8efff`) with opacity 1, stroke `--ink`. Delete `fillOpacity={0.16}`. The pale step is a tint behind the ink line, not the accent base and not a thin mark.
 - Two or more series keep the line chart, no area.
 - `isAnimationActive={false}` stays, so the chart does not depend on the reduced-motion duration tokens.
 - Tooltip: white card, `--radius-md`, `--shadow-md`, ink text. Series names use the same tokens as the strokes. Set `cursor={false}` so the default grey cursor band does not introduce another colour.
-- Legend: the word plus an 8px disc (`size-2`, `--space-sm`). The word is the meaning; the disc matches the stroke.
-
-A dark chart panel would make `--chart-1` and `--chart-2` legal, and with apricot they stay cyan and lilac. That is the alternative in the open questions. The recommendation is the white card: the page is a light calculator, the tooltip stays a light popover, and the footer is already the dark band.
+- Legend: the word plus an 8px disc (`size-2`, `--space-sm`). The word is the meaning. The disc uses the same token as the stroke.
 
 ---
 
@@ -509,17 +509,23 @@ There is no focusable control in the footer today. Still set `.wds-band--dark :f
 
 ## 404 and prerendered HTML
 
-**Client 404.** `NotFound` keeps the heading "That page is not here", the sentence about the four calculators, and the link to `/savings` with `scenarioToSearch(defaultScenario)`. The `useEffect` that sets the title and `noindex` stays. Present it as a white card, `display-sm` heading, text link in `--primary-text` or `wds-btn--text`. Header and footer remain.
+**Client 404.** `NotFound` keeps the heading "That page is not here", the sentence about the four calculators, and the link to `/savings` with `scenarioToSearch(defaultScenario)`. The link text is "Open the savings calculator". The `useEffect` that sets the title and `noindex` stays. Present it as a white card, `display-sm` heading, text link in `--primary-text`. Header and footer remain.
 
-**Static 404.** `prerender.mjs` body:
+**Static 404.** `prerender.mjs` body today is:
 
 ```html
 <main><h1>That page is not here</h1><p>The calculators live on Savings, Stocks, Compare, and Goal.</p><p><a href="/">Back to Returno</a></p></main>
 ```
 
-plus the stamp. The Worker serves this file with status 404 (`worker-route.mjs`). `vite.config.ts` `spaFallback` copies `index.html` over `404.html` during `vite build`, and `prerender.mjs` runs after that and writes the real 404. Do not reorder `package.json`'s `build` script.
+Change the link so both 404s match. The static body becomes:
 
-Once `<body class="wds">` and `wise-ds-base.css` are on the shell, this unclassed `h1` / `p` / `a` pick up the element styles (`:where`, so utilities still win in the app). Give the static `h1` class `display-sm` so a no-JS 404 matches the client heading size. The link text and the `href="/"` stay. The stamp footer uses the dark-band classes.
+```html
+<main><h1 class="display-sm">That page is not here</h1><p>The calculators live on Savings, Stocks, Compare, and Goal.</p><p><a href="/savings">Open the savings calculator</a></p></main>
+```
+
+"Open the savings calculator" is the label to keep. It is sentence case and it names the destination. "Back to Returno" does not. The heading and the sentence under it stay. The Worker still serves this file with status 404 (`worker-route.mjs`). `vite.config.ts` `spaFallback` copies `index.html` over `404.html` during `vite build`, and `prerender.mjs` runs after that and writes the real 404. Do not reorder `package.json`'s `build` script.
+
+Once `<body class="wds">` and `wise-ds-base.css` are on the shell, unclassed `p` and `a` pick up the element styles (`:where`, so utilities still win in the app). The `display-sm` class on the `h1` matches the client heading. The stamp footer uses the dark-band classes.
 
 `build:pages` never runs prerender, so its `404.html` remains a shell copy. That script is not the production path. Leave it.
 
@@ -573,7 +579,7 @@ Shell markup, classes only, behaviour unchanged:
 
 ### Acceptance
 
-- [ ] One accent fill on `/savings`: the mark. Copy, nav, and focus are not apricot fills.
+- [ ] One accent fill on `/savings`: the mark, in cyan. Copy, nav, and focus are not cyan-base fills.
 - [ ] Footer shows the same stamp text as before, in `--mute-on-dark`, and `BuildStamp.test.ts` passes.
 - [ ] Tab order: skip link, wordmark, four calculators, copy, then the form. Focus ring visible on each.
 - [ ] At 390, 768, and 1280 the header does not scroll sideways and the nav items are at least 48px tall.
@@ -587,7 +593,7 @@ Shell markup, classes only, behaviour unchanged:
 
 - `PageIntro`: eyebrow element with classes `wds-eyebrow eyebrow` and colour `--text-3`. `h1` with `display-sm`. Lede with `wds-lead`.
 - Home: same header treatment with `display-md` on the `h1`. Each calculator link is a white card, radius `--radius-xl`, padding `--space-xl`, title `display-xs`, text `body-sm` in `--text-3`. The `Link` `to` and `search` stay.
-- `Summary`: the figure class from the big-figures section. Drop `tone: "text-savings"` / `"text-stocks"` / `"text-real"` from the route stat arrays in the same phase, otherwise the euro amounts stay apricot or red. Negative gain on stocks (`projection.totalGain < 0`) and the goal `tone` keep `--negative-deep` / `--positive-deep` only when the label or the goal sentence already states the status.
+- `Summary`: the figure class from the big-figures section. Drop `tone: "text-savings"` / `"text-stocks"` / `"text-real"` from the route stat arrays in the same phase, otherwise the euro amounts stay in accent text or red. Negative gain on stocks (`projection.totalGain < 0`) and the goal `tone` keep `--negative-deep` / `--positive-deep` only when the label or the goal sentence already states the status.
 
 ### Acceptance
 
@@ -669,27 +675,25 @@ Apply the chart section. Then:
 
 ### Acceptance
 
-- [ ] `rg "#[0-9a-fA-F]{3,8}" src` prints no hits in TSX (the favicon and `og-image.mjs` are still allowed until Phase 7).
+- [ ] `rg "#[0-9a-fA-F]{3,8}" src` prints no hits in TSX. `public/favicon.svg` and `scripts/og-image.mjs` still contain their current hexes. `rg "chart-1|chart-2|cyan-base|lime-base" src` prints no hits.
 - [ ] Savings chart is one ink line on a pale fill. Compare shows three distinguishable lines when inflation is on, and the legend words match.
 - [ ] Table still scrolls inside `max-h-[28rem]` and the header sticks.
 - [ ] `npm test` passes, including `src/content/seo.test.ts`.
 
 ---
 
-## Phase 7 — Prerender, favicon, leftovers, verify
+## Phase 7 — Prerender, leftovers, verify
 
-**Files:** `scripts/prerender.mjs`, `public/favicon.svg`, `scripts/og-image.mjs`, regenerated `public/og.png`, and deletions of unused theme keys.
+**Files:** `scripts/prerender.mjs`, and deletions of unused theme keys. Do not touch `public/favicon.svg`, `scripts/og-image.mjs`, or `public/og.png`.
 
-- Apply the prerender and static 404 class changes. Stamp classes match `BuildStamp.tsx`.
-- Recolor the favicon SVG to the apricot token hexes: fill `#ffc091` (`--apricot-base`), strokes `#3a1a00` (`--apricot-on`). Same drawing, same `viewBox`.
-- Point `og-image.mjs` at the same tokens: paper `#e8ebe6`, card `#ffffff`, ink `#0e0f0c`, muted `#5f615d`, accent `#ffc091`, and a second bar colour `#8a3b00` (`--apricot-text`) where the script used stocks orange, `#454745` where it used real blue. Run `node scripts/og-image.mjs`. Do not change the 1200×630 size or the meta tags.
-- If Juha defers the asset recolor (open question), leave the files and list the hexes as logo exceptions. Do not do half of them.
+- Apply the prerender and static 404 class changes, including the shared link "Open the savings calculator" to `/savings`. Stamp classes match `BuildStamp.tsx`.
 - Delete `@theme` keys that no component uses (`savings-soft` if still unused).
 - Run the Step 6 checks below.
 
 ### Acceptance
 
-- [ ] `npm run build` then `rg "That page is not here" dist/404.html` and `rg "Compound a savings balance" dist/savings/index.html`.
+- [ ] `npm run build` then `rg "That page is not here" dist/404.html`, `rg "Open the savings calculator" dist/404.html`, and `rg "Compound a savings balance" dist/savings/index.html`. `dist/404.html` does not contain "Back to Returno".
+- [ ] `git diff -- public/favicon.svg public/og.png scripts/og-image.mjs` is empty.
 - [ ] `dist/index.html` still contains both verification metas, the canonical link, and the JSON-LD script. `assertVerificationMeta` already enforces the metas during the build.
 - [ ] `npm run build:worker` succeeds. Policy string unchanged.
 - [ ] Leftover grep is clean or every hit is on the exception list.
@@ -698,10 +702,10 @@ Apply the chart section. Then:
 
 ## Step 5 — Rules during every phase
 
-- One accent fill: the mark. A second apricot fill on the same view fails review.
-- No white text on apricot. The copy button's success state is the positive pair, not the accent.
-- No `#9fe870` and no `data-accent="lime"`.
-- No accent base (`#ffc091`) as text or as a chart stroke on white. Apricot text is `#8a3b00`.
+- One accent fill: the mark, in `--primary` (cyan). A second cyan-base fill on the same view fails review.
+- Text on the cyan fill is `--on-primary` (`#001f2e`). The copy button's success state is the positive pair.
+- `data-accent` is `cyan`. Do not set `lime`. Do not paint `#9fe870` or `#38c8ff` in component code.
+- No accent base as text or as a chart stroke on white. On light surfaces the accent-linked colour is `--primary-text` (`#00587a`). `--chart-1` is lime under this accent and stays unused.
 - Focus ring on every control, including the skip link and the icon-free text button.
 - Existing `htmlFor`, `aria-*`, `role="status"`, and `aria-live` stay.
 - Heading order stays. The SEO article's `h2` then `h3` stays.
@@ -719,7 +723,7 @@ Do this on the shell after Phase 3, and again on the whole site after Phase 7. W
 3. **Widths.** No horizontal scroll. Tiles fit their figures. Nav targets 48px. Inputs may be 40px, matching the text-field spec; buttons and nav items are 48px. The year table scrolls inside its card, not the page.
 4. **Reduced motion.** `prefers-reduced-motion: reduce`. Chart animation is already off. Durations in `:root` are 0ms. Nothing else may animate.
 5. **Leftovers.** In the CSS and TSX that the phases touched: no `#` hex, no `rgb(`, no `px` font size outside the vendored `wise-ds.css`, no `box-shadow` except `--shadow-md` and `--shadow-lg` on the tooltip and the toast. Vendored `wise-ds.css` is allowed to contain its own values. Exceptions are the list in Step 3.
-6. **Nothing lost.** Same routes, same search params, same `localStorage` scenario, same field names, same disclaimer, same stamp text, same 404 sentences, same JSON-LD.
+6. **Nothing lost.** Same routes, same search params, same `localStorage` scenario, same field names, same disclaimer, same stamp text, same JSON-LD. The 404 heading and the sentence under it stay. Both 404 links read "Open the savings calculator" and go to `/savings`, which is the copy change decided on 2026-10-27.
 
 Commands on every phase, and once more at the end:
 
@@ -750,15 +754,12 @@ No-JS check: open `dist/savings/index.html` with scripts disabled (or just read 
 
 ---
 
-## Open questions for Juha
+## Still open
 
-1. **Accent.** Apricot is the recommendation. Cyan is the alternative if you want a cool accent; charts must then avoid `--chart-1`, because cyan rewrites it to Wise lime. Lime, amber, and lilac are poor fits for the reasons in the decision table.
-2. **Charts on white, or one dark chart panel?** White is the recommendation, with `--ink`, `--primary-text`, `--body`, and `--text-3`. A dark panel would unlock `--chart-1` and `--chart-2` and would add a second dark region above the footer.
-3. **Favicon and `og.png`.** Recolor them to the accent tokens in Phase 7, or leave the teal mark and list it as a logo exception?
-4. **Screen titles at 32px (`display-sm`) and the home title at 40px (`display-md`).** The package's marketing h1 is 64px. These pages are tools, so the plan uses the screen-title sizes.
-5. **Static 404.** It links "Back to Returno" to `/`. The client 404 links "Open the savings calculator" to `/savings`. The plan keeps both texts. Say if you want them aligned.
-6. **Static 404 nav.** Other prerendered pages include the calculator nav. The static 404 does not. The plan leaves it out. Say if no-JS visitors should get that nav too.
-7. **Checkboxes and radios use ink, not the accent,** so the mark stays the only accent fill. Say if the native controls should use `--primary` instead.
+These were not in the 2026-10-27 answers. The plan proceeds with the default under each one.
+
+1. **Static 404 nav.** Other prerendered pages include the calculator nav. The static 404 does not. Leave it out unless Juha asks for it.
+2. **Checkboxes and radios use ink, not the accent,** so the mark stays the only accent fill. Switch them to `--primary` only if Juha asks.
 
 ## Out of scope
 
