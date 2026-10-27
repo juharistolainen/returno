@@ -1,0 +1,55 @@
+# Returno
+
+Returno is a small, browser-only calculator for expected savings and investment growth. There is no backend. Scenarios stay in the URL and in `localStorage`, so a result can be bookmarked or sent as a link.
+
+The figures are estimates, not financial advice. Returno assumes the rate you type stays constant. It does not know future interest, market returns, fees, tax, or inflation.
+
+## Calculators
+
+- **Savings** (`/savings`) compounds a balance with regular top-ups, a nominal annual rate, and a compounding frequency. Tax on interest is optional. The default rate of 30% matches the lower Finnish capital-income tax rate; the higher bracket is not modeled.
+- **Stocks** (`/stocks`) uses an expected yearly return and an annual fund fee. Inflation is optional and only restates the result in today's euros.
+- **Compare** (`/compare`) runs both with the same balance, top-up, and horizon, then shows both lines and the gap at the end.
+
+Top-ups are deposited at the start of each month or year and earn a return only for the time they have been in the account. Savings interest is credited at the compounding frequency (daily uses a 365-day year). With no top-ups, a stock balance after one year is `(1 + return) × (1 − fee)`.
+
+Amounts are shown in euros.
+
+## Develop
+
+```bash
+npm install
+npm run dev
+```
+
+Open the URL Vite prints (usually http://localhost:5173). The dev server uses the site root `/`.
+
+## Test and check
+
+```bash
+npm test
+npm run lint
+npm run typecheck
+npm run build
+```
+
+`npm test` runs Vitest on the calculation, search-param, and storage modules. The calculation tests cover contribution timing, compounding frequencies, a zero rate, tax, and fund fees.
+
+## Deploy to GitHub Pages
+
+The workflow in `.github/workflows/pages.yml` builds with Vite base path `/returno/` and deploys `dist` on every push to `main`.
+
+Client-side routes use the browser history API. The build copies `index.html` to `404.html`, which is how GitHub Pages serves the app for paths such as `/returno/savings`.
+
+Before the first deploy, a repository admin needs to turn Pages on:
+
+1. Open **Settings → Pages**.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+3. Merge this project to `main` (or run the **Deploy GitHub Pages** workflow).
+
+The site is then published at `https://<user>.github.io/returno/`. Renaming the repository means changing `pagesBase` in `vite.config.ts` to the new path.
+
+`npm run build:pages` is the same build the workflow runs. `npm run build` keeps the base path at `/` for a local preview.
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE).
