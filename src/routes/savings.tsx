@@ -45,7 +45,7 @@ function SavingsPage() {
         <div className="flex min-w-0 flex-col gap-6">
           <Summary
             stats={[
-              { label: "Final balance", value: formatEur(projection.finalBalance), tone: "text-savings" },
+              { label: "Final balance", value: formatEur(projection.finalBalance) },
               { label: "Total contributions", value: formatEur(projection.totalContributions) },
               { label: "Interest earned", value: formatEur(projection.totalGain) },
               ...(scenario.taxEnabled

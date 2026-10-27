@@ -52,7 +52,7 @@ function StocksPage() {
         <div className="flex min-w-0 flex-col gap-6">
           <Summary
             stats={[
-              { label: "Final balance", value: formatEur(projection.finalBalance), tone: "text-stocks" },
+              { label: "Final balance", value: formatEur(projection.finalBalance) },
               { label: "Total contributions", value: formatEur(projection.totalContributions) },
               {
                 label: "Gain after fees",
@@ -65,7 +65,6 @@ function StocksPage() {
                     {
                       label: "In today's euros",
                       value: formatEur(projection.finalRealBalance),
-                      tone: "text-real",
                       hint: "Purchasing power at the end",
                     },
                   ]

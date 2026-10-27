@@ -44,7 +44,7 @@ function GoalPage() {
     ...(inflationOn ? [{ dataKey: "real", label: "Today's euros", color: "#35557a" }] : []),
     ...(scenario.targetKind === "balance" ? [{ dataKey: "target", label: "Target", color: "#1c1814" }] : []),
   ];
-  const tone = plan.status === "unreachable" ? "text-stocks" : plan.status === "reached" ? "text-savings" : "text-ink";
+  const tone = plan.status === "unreachable" ? "text-stocks" : plan.status === "reached" ? "text-positive" : "text-ink";
 
   return (
     <>
