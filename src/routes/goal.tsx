@@ -42,7 +42,7 @@ function GoalPage() {
       color: scenario.vehicle === "stocks" ? "var(--positive)" : "var(--primary-text)",
       fill: scenario.vehicle === "stocks" ? "var(--positive-pale)" : "var(--primary-pale)",
     },
-    ...(inflationOn ? [{ dataKey: "real", label: "Today's euros", color: "var(--body)" }] : []),
+    ...(inflationOn ? [{ dataKey: "real", label: "Today's euros", color: "var(--body)", dash: "8 4" }] : []),
     ...(scenario.targetKind === "balance" ? [{ dataKey: "target", label: "Target", color: "var(--text-3)", dash: "4 4" }] : []),
   ];
   const tone = plan.status === "unreachable" ? "text-stocks" : plan.status === "reached" ? "text-positive" : "text-ink";

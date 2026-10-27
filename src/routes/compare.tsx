@@ -51,7 +51,7 @@ function ComparePage() {
     { dataKey: "savings", label: "Savings", color: "var(--primary-text)" },
     { dataKey: "stocks", label: "Stocks", color: "var(--positive)" },
     ...(scenario.inflationEnabled
-      ? [{ dataKey: "stocksReal", label: "Stocks in today's euros", color: "var(--body)" }]
+      ? [{ dataKey: "stocksReal", label: "Stocks in today's euros", color: "var(--body)", dash: "8 4" }]
       : []),
   ];
 
