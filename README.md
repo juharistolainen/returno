@@ -9,6 +9,7 @@ The figures are estimates, not financial advice. Returno assumes the rate you ty
 - **Savings** (`/savings`) compounds a balance with regular top-ups, a nominal annual rate, and a compounding frequency. Tax on interest is optional. The default rate of 30% matches the lower Finnish capital-income tax rate; the higher bracket is not modeled.
 - **Stocks** (`/stocks`) uses an expected yearly return and an annual fund fee. Inflation is optional and only restates the result in today's euros.
 - **Compare** (`/compare`) runs both with the same balance, top-up, and horizon, then shows both lines and the gap at the end.
+- **Goal** (`/goal`) solves the monthly top-up that reaches a target balance, or a target net growth after tax and fees. The horizon is a number of years or a date. Savings uses the interest rate, compounding, and optional tax. Stocks use the expected return, fund fee, and optional inflation so the target can be in today's euros.
 
 Top-ups are deposited at the start of each month or year and earn a return only for the time they have been in the account. Savings interest is credited at the compounding frequency (daily uses a 365-day year). With no top-ups, a stock balance after one year is `(1 + return) × (1 − fee)`.
 

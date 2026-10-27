@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
+import { isCalculatorPath } from "../lib/paths.ts";
 import { scenarioEqual, type Scenario } from "../lib/scenario.ts";
 
 export function useReplaceScenario(scenario: Scenario): (next: Scenario) => void {
@@ -9,7 +10,7 @@ export function useReplaceScenario(scenario: Scenario): (next: Scenario) => void
     (next: Scenario) => {
       if (scenarioEqual(next, scenario)) return;
       const pathname = location.pathname;
-      if (pathname === "/savings" || pathname === "/stocks" || pathname === "/compare") {
+      if (isCalculatorPath(pathname)) {
         void navigate({ to: pathname, search: next, replace: true });
       }
     },

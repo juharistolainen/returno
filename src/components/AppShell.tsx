@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate, useRouterState } from "@tanstack/react-router";
+import { isCalculatorPath } from "../lib/paths.ts";
 import { defaultScenario, parseScenario, type Scenario } from "../lib/scenario.ts";
 import { writeStoredScenario } from "../lib/storage.ts";
 
@@ -7,6 +8,7 @@ const views = [
   { to: "/savings", label: "Savings" },
   { to: "/stocks", label: "Stocks" },
   { to: "/compare", label: "Compare" },
+  { to: "/goal", label: "Goal" },
 ] as const;
 
 export function RootLayout() {
@@ -29,7 +31,7 @@ export function RootLayout() {
             </span>
           </Link>
           <div className="flex flex-col gap-3 sm:items-end">
-            <nav aria-label="Calculators" className="grid grid-cols-3 rounded-full bg-[#efe7da] p-1 text-sm font-medium">
+            <nav aria-label="Calculators" className="grid grid-cols-2 gap-1 rounded-2xl bg-[#efe7da] p-1 text-sm font-medium sm:grid-cols-4 sm:rounded-full sm:gap-0">
               {views.map((view) => (
                 <Link
                   key={view.to}
@@ -63,7 +65,7 @@ export function NotFound() {
   return (
     <div className="mx-auto max-w-lg rounded-2xl border border-line bg-card px-6 py-10">
       <h1 className="font-display text-3xl">That page is not here</h1>
-      <p className="mt-2 text-muted">The calculators live on Savings, Stocks, and Compare.</p>
+      <p className="mt-2 text-muted">The calculators live on Savings, Stocks, Compare, and Goal.</p>
       <Link
         to="/savings"
         search={defaultScenario}
@@ -95,7 +97,7 @@ function PersistScenario() {
     writeStoredScenario(scenario);
     const pathname = location.pathname;
     if (
-      (pathname === "/savings" || pathname === "/stocks" || pathname === "/compare") &&
+      isCalculatorPath(pathname) &&
       (location.searchStr === "" || location.searchStr === "?")
     ) {
       void navigate({ to: pathname, search: scenario, replace: true });
