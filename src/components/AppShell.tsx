@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { BuildStamp } from "./BuildStamp.tsx";
 import { isCalculatorPath } from "../lib/paths.ts";
 import { defaultScenario, resolveScenario, scenarioEqual, scenarioToSearch, type Scenario } from "../lib/scenario.ts";
 import { readStoredScenario, writeStoredScenario } from "../lib/storage.ts";
@@ -52,10 +53,13 @@ export function RootLayout() {
         <Outlet />
       </main>
       <footer className="border-t border-line/80 px-4 py-6 text-sm text-muted">
-        <p className="mx-auto max-w-6xl">
-          Estimates only, not financial advice. Returno does not know future rates, returns, fees, tax, or inflation.
-          A constant rate is a sketch, not a forecast.
-        </p>
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <p className="max-w-3xl">
+            Estimates only, not financial advice. Returno does not know future rates, returns, fees, tax, or inflation.
+            A constant rate is a sketch, not a forecast.
+          </p>
+          <BuildStamp version={__APP_VERSION__} builtAt={__BUILD_TIME__} />
+        </div>
       </footer>
     </div>
   );
