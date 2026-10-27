@@ -39,7 +39,7 @@ function SavingsPage() {
         lede="See a final balance, the money you put in, and the interest that built on top of it."
       />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
-        <section className="rounded-2xl border border-line bg-card p-4 sm:p-5">
+        <section className="rounded-2xl bg-card p-6">
           <ScenarioForm scenario={scenario} onScenario={update} mode="savings" />
         </section>
         <div className="flex min-w-0 flex-col gap-6">
@@ -53,7 +53,7 @@ function SavingsPage() {
                 : []),
             ]}
           />
-          <GrowthChart data={chart} series={[{ dataKey: "balance", label: "Balance", color: "#0f6e62" }]} label="Growth" />
+          <GrowthChart data={chart} series={[{ dataKey: "balance", label: "Balance", color: "var(--ink)" }]} label="Growth" />
           <YearTable
             rows={projection.rows}
             caption="Savings balance at the end of each year"

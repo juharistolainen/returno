@@ -11,6 +11,7 @@
   --color-ink: var(--ink);
   --color-card: var(--canvas);             /* cards, inputs, nav */
   --color-line: var(--hairline);           /* decorative dividers */
+  --color-line-soft: var(--hairline-soft); /* table rows */
   --color-muted: var(--text-3);            /* captions that carry meaning */
   --color-tint: var(--canvas-tint);        /* wells and the nav tray */
   --color-savings: var(--primary-text);    /* interim, until later phases remove extra accent text */
@@ -18,6 +19,7 @@
   --color-stocks: var(--negative-deep);    /* errors and negative amounts */
   --color-stocks-soft: var(--negative-pale);
   --color-real: var(--body);               /* third series, quiet */
+  --color-body: var(--body);               /* long-form copy */
   --color-on-fill: var(--on-primary);
   --color-positive: var(--positive-deep);
   --color-positive-soft: var(--positive-pale);
@@ -35,6 +37,9 @@
 .rounded-xl { border-radius: var(--radius-md); }
 .rounded-2xl { border-radius: var(--radius-xl); }
 .rounded-full { border-radius: var(--radius-pill); }
+
+/* Tailwind's shadow utilities inline their own values. Floating UI uses the system's. */
+.shadow-md { box-shadow: var(--shadow-md); }
 
 body {
   margin: 0;

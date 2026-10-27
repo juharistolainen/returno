@@ -24,9 +24,9 @@ export function SeoBlock({ page, noindex = false }: { page: SeoPage; noindex?: b
     <article className="mt-10 max-w-3xl border-t border-line pt-8">
       {page.sections.map((section) => (
         <section key={section.heading} className="mt-6">
-          <h2 className="font-display text-2xl">{section.heading}</h2>
+          <h2 className="display-xs mb-0">{section.heading}</h2>
           {section.paragraphs.map((paragraph) => (
-            <p key={paragraph.slice(0, 48)} className="mt-2 text-muted">
+            <p key={paragraph.slice(0, 48)} className="mt-2 mb-0 text-body">
               {paragraph}
             </p>
           ))}
@@ -34,11 +34,11 @@ export function SeoBlock({ page, noindex = false }: { page: SeoPage; noindex?: b
       ))}
       {page.faqs.length > 0 ? (
         <section className="mt-6">
-          <h2 className="font-display text-2xl">Questions</h2>
+          <h2 className="display-xs mb-0">Questions</h2>
           {page.faqs.map((faq) => (
             <div key={faq.question} className="mt-4">
-              <h3 className="text-base font-semibold">{faq.question}</h3>
-              <p className="mt-1 text-muted">{faq.answer}</p>
+              <h3 className="body-strong mb-0">{faq.question}</h3>
+              <p className="mt-1 mb-0 text-body">{faq.answer}</p>
             </div>
           ))}
         </section>

@@ -48,10 +48,10 @@ function ComparePage() {
   const difference = comparison.nominalDifference;
   const ahead = difference > 0 ? "Stocks end ahead" : difference < 0 ? "Savings end ahead" : "They end even";
   const series = [
-    { dataKey: "savings", label: "Savings", color: "#0f6e62" },
-    { dataKey: "stocks", label: "Stocks", color: "#b4532a" },
+    { dataKey: "savings", label: "Savings", color: "var(--ink)" },
+    { dataKey: "stocks", label: "Stocks", color: "var(--primary-text)" },
     ...(scenario.inflationEnabled
-      ? [{ dataKey: "stocksReal", label: "Stocks in today's euros", color: "#35557a" }]
+      ? [{ dataKey: "stocksReal", label: "Stocks in today's euros", color: "var(--body)" }]
       : []),
   ];
 
@@ -63,7 +63,7 @@ function ComparePage() {
         lede="Balance, top-ups, and years are shared. Each path keeps its own rate, fee, and tax."
       />
       <div className="flex flex-col gap-6">
-        <section className="rounded-2xl border border-line bg-card p-4 sm:p-5">
+        <section className="rounded-2xl bg-card p-6">
           <ScenarioForm scenario={scenario} onScenario={update} mode="compare" />
         </section>
         <Summary
