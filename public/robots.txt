@@ -1,0 +1,5 @@
+# Formulas and calculator notes: https://returno.site/llms.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://returno.site/sitemap.xml

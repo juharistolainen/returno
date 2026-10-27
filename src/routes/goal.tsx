@@ -2,8 +2,10 @@ import { createRoute, useSearch } from "@tanstack/react-router";
 import { GoalForm } from "../components/GoalForm.tsx";
 import { GrowthChart } from "../components/GrowthChart.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
+import { SeoBlock } from "../components/SeoBlock.tsx";
 import { Summary } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
+import { requirePage } from "../content/seo.ts";
 import { formatEur } from "../lib/format.ts";
 import { goalChart, monthsUntil, planGoal, MAX_GOAL_MONTHS, type GoalInput } from "../lib/goal.ts";
 import { sessionToday } from "../lib/session-today.ts";
@@ -11,6 +13,8 @@ import { validateSearch } from "../lib/search.ts";
 import type { Scenario } from "../lib/scenario.ts";
 import { rootRoute } from "./root.tsx";
 import { useReplaceScenario } from "./scenario-page.tsx";
+
+const goalSeo = requirePage("/goal");
 
 export const goalRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -100,6 +104,7 @@ function GoalPage() {
           />
         </div>
       </div>
+      <SeoBlock page={goalSeo} />
     </>
   );
 }
