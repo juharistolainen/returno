@@ -1,0 +1,80 @@
+/* Wise-Inspired Design System — wise-ds-base.css (optional)
+   The adoption layer: it restyles plain HTML elements and adds the page-level layout helpers a
+   site needs (container, bands, grids, stacks). Load it AFTER wise-ds.css, and only on pages you
+   mean to convert. Everything is scoped to the `wds` class, so put `class="wds"` on <body> (or on
+   a wrapper) to switch a page over, and leave it off anything not converted yet.
+   Element rules are wrapped in :where(), so they carry zero specificity: any class — one of this
+   system's, or one the site already has — wins over them. Delete the site's own colour, font and
+   control rules as you convert a template, and these defaults take over. */
+
+.wds {
+  background: var(--canvas-soft);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Elements ---- */
+:where(.wds) :where(h1) { font-family: var(--font-display); font-size: var(--fs-xl); line-height: var(--lh-xl); font-weight: var(--fw-black); letter-spacing: -0.015em; color: var(--ink); margin: 0 0 var(--space-lg); }
+:where(.wds) :where(h2) { font-family: var(--font-display); font-size: var(--fs-md); line-height: var(--lh-md); font-weight: var(--fw-black); letter-spacing: -0.015em; color: var(--ink); margin: 0 0 var(--space-md); }
+:where(.wds) :where(h3) { font-family: var(--font-display); font-size: var(--fs-sm); line-height: var(--lh-sm); font-weight: var(--fw-strong); letter-spacing: -0.02em; color: var(--ink); margin: 0 0 var(--space-md); }
+:where(.wds) :where(h4) { font-family: var(--font-display); font-size: var(--fs-xs); line-height: var(--lh-xs); font-weight: var(--fw-strong); letter-spacing: -0.015em; color: var(--ink); margin: 0 0 var(--space-sm); }
+:where(.wds) :where(h5) { font-size: var(--fs-body-lg); line-height: var(--lh-body-lg); font-weight: var(--fw-strong); color: var(--ink); margin: 0 0 var(--space-sm); }
+:where(.wds) :where(h6) { font-size: var(--fs-body); line-height: var(--lh-body); font-weight: var(--fw-strong); color: var(--ink); margin: 0 0 var(--space-sm); }
+:where(.wds) :where(p) { margin: 0 0 var(--space-lg); color: var(--body); }
+:where(.wds) :where(strong, b) { font-weight: var(--fw-strong); color: var(--ink); }
+:where(.wds) :where(small) { font-size: var(--fs-body-sm); line-height: var(--lh-body-sm); color: var(--text-3); }
+:where(.wds) :where(a) { color: var(--primary-text); text-decoration: none; }
+:where(.wds) :where(a:hover) { text-decoration: underline; text-underline-offset: var(--space-xxs); }
+:where(.wds) :where(a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible) { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+:where(.wds) :where(ul, ol) { margin: 0 0 var(--space-lg); padding-left: var(--space-xl); color: var(--body); }
+:where(.wds) :where(li) { margin-bottom: var(--space-sm); }
+:where(.wds) :where(hr) { border: 0; border-top: 1px solid var(--hairline); margin: var(--space-2xl) 0; }
+:where(.wds) :where(blockquote) { margin: 0 0 var(--space-lg); padding-left: var(--space-lg); border-left: 1px solid var(--ink); color: var(--ink); }
+:where(.wds) :where(code, kbd, samp, pre) { font-family: var(--font-mono); font-size: var(--fs-body-sm); }
+:where(.wds) :where(img, video, svg) { max-width: 100%; height: auto; }
+:where(.wds) :where(table) { width: 100%; border-collapse: collapse; margin: 0 0 var(--space-lg); }
+:where(.wds) :where(th) { text-align: left; font-size: var(--fs-caption); line-height: var(--lh-caption); font-weight: var(--fw-strong); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--hairline); }
+:where(.wds) :where(td) { padding: var(--space-md); border-bottom: 1px solid var(--hairline-soft); color: var(--body); }
+:where(.wds) :where(label) { font-size: var(--fs-body-sm); line-height: var(--lh-body-sm); font-weight: var(--fw-strong); color: var(--ink); }
+:where(.wds) :where(input, select, textarea) { box-sizing: border-box; width: 100%; height: var(--control-sm); padding: 0 var(--space-lg); border: 1px solid var(--ink); border-radius: var(--radius-md); background: var(--canvas); color: var(--ink); font-family: var(--font-body); font-size: var(--fs-body); }
+:where(.wds) :where(textarea) { height: auto; min-height: var(--field-multiline); padding: var(--space-md) var(--space-lg); resize: vertical; }
+:where(.wds) :where(input[type="checkbox"], input[type="radio"]) { width: auto; height: auto; accent-color: var(--primary); }
+:where(.wds) :where(::placeholder) { color: var(--text-3); opacity: 1; }
+
+/* ---- Layout helpers ---- */
+.wds-container { box-sizing: border-box; width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: var(--space-xl); }
+.wds-band { padding-block: var(--space-3xl); background: var(--canvas-soft); }
+.wds-band--white { background: var(--canvas); }
+.wds-band--tint { background: var(--canvas-tint); }
+.wds-band--dark { background: var(--ink); color: var(--canvas-soft); }
+:where(.wds-band--dark) :where(h1, h2, h3, h4) { color: var(--primary); }
+:where(.wds-band--dark) :where(p, li, td) { color: var(--canvas-soft); }
+.wds-band--dark { --wds-focus: var(--focus-ring-on-dark); }
+.wds-stack { display: flex; flex-direction: column; gap: var(--space-lg); }
+.wds-stack--tight { gap: var(--space-sm); }
+.wds-stack--loose { gap: var(--space-2xl); }
+.wds-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); }
+.wds-grid { display: grid; gap: var(--space-lg); grid-template-columns: 1fr; }
+.wds-grid > *, .wds-hero > * { min-width: 0; }
+.wds-hero { display: grid; gap: var(--space-2xl); align-items: center; grid-template-columns: 1fr; }
+.wds-hero__title { margin: 0 0 var(--space-md); }
+.wds-lead { font-size: var(--fs-body-lg); line-height: var(--lh-body-lg); color: var(--body); }
+.wds-divider { height: 1px; background: var(--hairline); border: 0; margin: 0; }
+.wds-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (min-width: 768px) {
+  .wds-grid--2, .wds-grid--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .wds-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .wds-hero { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 767px) {
+  .wds-band { padding-block: var(--space-2xl); }
+  :where(.wds) :where(h1) { font-size: var(--fs-md); line-height: var(--lh-md); }
+  :where(.wds) :where(h2) { font-size: var(--fs-sm); line-height: var(--lh-sm); }
+}

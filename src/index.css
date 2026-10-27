@@ -1,8 +1,10 @@
 @import "tailwindcss";
+@import "./styles/wise-ds.css";
 
 @theme {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Colours stay on the current hexes until Phase 2. */
   --color-paper: #f4f0e7;
   --color-ink: #1c1814;
   --color-card: #fffdf8;
@@ -14,6 +16,18 @@
   --color-stocks-soft: #fde8dc;
   --color-real: #35557a;
 }
+
+/*
+  Tailwind utilities and the design system share --radius-* and --shadow-*.
+  These rules are unlayered, so they beat the utilities, and they do not
+  rewrite the custom properties the component classes read.
+  rounded-xl is the input utility (12px = --radius-md).
+  rounded-2xl is the card utility (24px = --radius-xl, not --radius-2xl which is 32px).
+*/
+.rounded-lg { border-radius: var(--radius-sm); }
+.rounded-xl { border-radius: var(--radius-md); }
+.rounded-2xl { border-radius: var(--radius-xl); }
+.rounded-full { border-radius: var(--radius-pill); }
 
 body {
   margin: 0;
