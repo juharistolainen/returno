@@ -33,12 +33,12 @@ export function YearTable<T extends { year: number }>({
   });
 
   return (
-    <section className="rounded-2xl border border-line bg-card">
-      <div className="border-b border-line px-4 py-3">
-        <h2 className="font-display text-2xl">Year by year</h2>
+    <section className="rounded-2xl bg-card">
+      <div className="border-b border-line px-6 py-4">
+        <h2 className="display-xs mb-0">Year by year</h2>
       </div>
       <div className="max-h-[28rem] overflow-auto">
-        <table className="w-full border-collapse text-sm">
+        <table className="mb-0 w-full border-collapse text-sm">
           <caption className="sr-only">{caption}</caption>
           <thead className="sticky top-0 bg-card">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -57,7 +57,7 @@ export function YearTable<T extends { year: number }>({
           </thead>
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b border-line/70 last:border-0">
+              <tr key={row.id} className="border-b border-line-soft last:border-0">
                 {row.getAllCells().map((cell) => (
                   <td key={cell.id} className={`px-4 py-2 tabular-nums ${alignClass(alignById.get(cell.column.id))}`}>
                     <table.FlexRender cell={cell} />

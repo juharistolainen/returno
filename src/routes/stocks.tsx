@@ -33,10 +33,10 @@ function StocksPage() {
   }));
   const series = scenario.inflationEnabled
     ? [
-        { dataKey: "balance", label: "Nominal balance", color: "#b4532a" },
-        { dataKey: "real", label: "Today's euros", color: "#35557a" },
+        { dataKey: "balance", label: "Nominal balance", color: "var(--positive)", fill: "var(--positive-pale)" },
+        { dataKey: "real", label: "Today's euros", color: "var(--body)", dash: "8 4" },
       ]
-    : [{ dataKey: "balance", label: "Balance", color: "#b4532a" }];
+    : [{ dataKey: "balance", label: "Balance", color: "var(--positive)", fill: "var(--positive-pale)" }];
 
   return (
     <>
@@ -46,13 +46,13 @@ function StocksPage() {
         lede="Same deposits, an expected yearly return, and the fund fee taken off along the way."
       />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
-        <section className="rounded-2xl border border-line bg-card p-4 sm:p-5">
+        <section className="rounded-2xl bg-card p-6">
           <ScenarioForm scenario={scenario} onScenario={update} mode="stocks" />
         </section>
         <div className="flex min-w-0 flex-col gap-6">
           <Summary
             stats={[
-              { label: "Final balance", value: formatEur(projection.finalBalance), tone: "text-stocks" },
+              { label: "Final balance", value: formatEur(projection.finalBalance) },
               { label: "Total contributions", value: formatEur(projection.totalContributions) },
               {
                 label: "Gain after fees",
@@ -65,7 +65,6 @@ function StocksPage() {
                     {
                       label: "In today's euros",
                       value: formatEur(projection.finalRealBalance),
-                      tone: "text-real",
                       hint: "Purchasing power at the end",
                     },
                   ]

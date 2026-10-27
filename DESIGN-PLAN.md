@@ -12,6 +12,36 @@ Inventory below is from `main` at `0f32307` (v0.3.4). `src/` and `index.html` ar
 
 **Status (27 Oct 2026):** decisions closed, no phase started. There is no `src/styles/`, and `src/main.tsx` still imports `@fontsource`. The design export was read from a scratch unzip of the uploaded package (`wise-ds-web/AGENT.md`, which this plan treats as the retrofit playbook, plus `DESIGN.md`, `patterns.md`, `tokens.json`, `css/wise-ds.css`, `css/wise-ds-base.css`, `react/wise-ds.d.ts`, `example.html`). That package is not in the repo yet.
 
+## Status
+
+Implemented on `design-system-application`, 2026-10-27. Not deployed, tagged, or released; no PR opened yet.
+
+| Phase | Commit | Summary |
+|---|---|---|
+| 1 | `8540865` | Vendored `wise-ds.css`, `wise-ds-base.css`, Figtree. `data-accent="cyan"`. `@fontsource` removed. |
+| 2 | `1ff0aae` | `@theme` colours point at the tokens. Opacity modifiers and arbitrary backgrounds gone. |
+| 3 | `2a8cb10` | Shell, mark, nav tray, copy button, dark footer, client 404. |
+| 5 | `fecd651` | Field rows with `field-with-suffix`, ink checkboxes and radios. |
+| 4 | `9743269` | Page headers, home cards, summary figures. |
+| 6 | `5847dc3` | Chart tokens, year table, SEO article, goal status. |
+| 7 | `f531f84` | Prerender classes, static 404 link, unused theme keys removed. |
+
+Phase 5 landed before Phase 4. Checkboxes below are ticked only where the check was run; open boxes were not verified in this pass. See "Implementation notes" for where the code differs from the plan text.
+
+## Implementation notes
+
+Differences from the plan text, and why. All are presentation only.
+
+- **`wise-ds-base.css` loads in Tailwind's base layer** (`@import "./styles/wise-ds-base.css" layer(base);`), not unlayered. Unlayered `:where()` element rules would beat Tailwind utilities. Consequence: Tailwind's preflight `*` reset and the base file tie on specificity and the base file wins by order, so `p`, `h1`–`h3`, `ul`, `li`, and `table` pick up the system's margins (and `p` its `--body` colour, `ul` a 24px left padding). Touched elements set `mb-0`, `m-0`, or `p-0` explicitly. Preflight still wins on heading `font-size` and `a` colour, so headings need a type class and links inherit colour unless classed.
+- **No `token-wins.css`.** The built CSS already ends with `--radius-xl: 24px`, `--radius-md: 12px`, the system `--shadow-lg`, and the cyan accent block, so the Phase 1 fallback was not needed.
+- **The Phase 3 input border reset was never added.** Phase 5 field markup owns the single ink border, so there was nothing to delete.
+- **`.shadow-md` correction.** Tailwind 4's `shadow-md` inlines its own values and does not read `--shadow-md`. `src/index.css` adds an unlayered `.shadow-md { box-shadow: var(--shadow-md); }` beside the radius corrections, so the toast and the chart tooltip use the system shadow.
+- **Theme keys after Phase 7:** `paper`, `ink`, `card`, `line`, `line-soft`, `muted`, `tint`, `stocks`, `body`, `positive`, `mute-on-dark`. Removed: `savings`, `savings-soft`, `stocks-soft`, `real`, `on-fill`, `positive-soft`. `stocks` is kept as the name for `--negative-deep` (form errors, a negative stock gain, an unreachable goal) rather than renaming every use; it no longer means the stocks series. `body` is new (`--body`, SEO copy).
+- **Goal "reached"** uses `text-positive` (`--positive-deep`), "unreachable" uses `text-stocks` (`--negative-deep`), otherwise `text-ink`, on both the status card and the monthly top-up figure.
+- **Chart series** carry an optional `dash` (`"4 4"` for the goal target), passed as `strokeDasharray`. The tooltip colours each row from the series list by `dataKey`, not from Recharts' `entry.color`.
+- **Card padding** is `p-6` on the form panels, summary tiles, chart card, and home cards. The goal status card and the table header are `px-6 py-4`.
+- **Static 404** is `<main class="wds-container py-8">`, not a bare `<main>`, so the no-JS page has the same gutters as the prerendered routes. Prerendered pages are `<article class="wds-container py-8">`, header `mt-6`, eyebrow `wds-eyebrow eyebrow`, `h3` `body-strong`.
+
 ## Global constraints
 
 Copied from the playbook. Every phase inherits them.
@@ -40,6 +70,7 @@ Recorded 2026-10-27, from Juha.
 4. **Screen titles are 32px.** Calculator pages and both 404 pages use `display-sm` (32px, weight 600). The home `h1` uses `display-md` (40px, weight 900).
 5. **Both 404 links say "Open the savings calculator" and point at `/savings`.** That label names the page it opens. "Back to Returno" does not. The heading "That page is not here" and the sentence under it stay. This is the one copy change in the retrofit.
 6. **The static 404 has no calculator nav.** The other prerendered pages include that nav. `dist/404.html` keeps the heading, the sentence, the savings link, and the build stamp.
+8. **Chart series: savings blue, stocks green.** Added 2026-10-27 after the first pass, from Juha: the ink / dark-cyan lines were too alike. (A red / green pass came first and was replaced the same day: red read as an error state.) Savings is `--primary-text` (`#00587a`, 7.84:1 on white), stocks `--positive` (`#2ead4b`). `--positive` is 2.92:1 on white, just under the 3:1 line target; it is a deliberate exception so the green differs from the dark blue in lightness as well as hue (`--positive-deep` was too close to the blue). The legend word carries the meaning, and the tooltip rows are ink text with a coloured disc, so no text is set in `--positive`. The single-series area fill follows the line: `--primary-pale` or `--positive-pale`. Today's euros lines are dashed `8 4` (longer than the target's `4 4`) so the grey line is not confused with the dark blue savings line. Summary figures stay ink.
 7. **Checkboxes and radios use ink.** `accent-color: var(--ink)` on `field-taxEnabled`, `field-inflationEnabled`, `goal-taxEnabled`, `goal-inflationEnabled`, and the goal radios. They are not an accent fill. The wordmark disc stays the only one.
 
 ## Implementation choices
@@ -181,12 +212,12 @@ Production is `npm run build` then `npm run build:worker`. There is no other bui
 
 ### Acceptance
 
-- [ ] `find dist -name '*.woff2'` prints two Figtree files under `dist/assets/` after `npm run build`.
-- [ ] The built CSS `url()` values point at those `/assets/` files.
-- [ ] The variable grep above passes.
-- [ ] `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run build:worker` pass.
-- [ ] Worker log still lists the prerendered HTML routes. `contentSecurityPolicy` is unchanged.
-- [ ] Pages still calculate. The visible change in this phase is Figtree replacing DM Sans and Fraunces.
+- [x] `find dist -name '*.woff2'` prints two Figtree files under `dist/assets/` after `npm run build`.
+- [x] The built CSS `url()` values point at those `/assets/` files.
+- [x] The variable grep above passes.
+- [x] `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run build:worker` pass.
+- [x] Worker log still lists the prerendered HTML routes. `contentSecurityPolicy` is unchanged.
+- [x] Pages still calculate. The visible change in this phase is Figtree replacing DM Sans and Fraunces.
 
 ---
 
@@ -251,10 +282,10 @@ Focus in `index.css` becomes:
 
 ### Acceptance
 
-- [ ] Page background is flat `#e8ebe6`. Cards are `#ffffff`. No gradient in `src/`.
-- [ ] `rg` over `src/` finds no `bg-[#` and no `/80` or `/85` or `/70` colour modifiers.
+- [x] Page background is flat `#e8ebe6`. Cards are `#ffffff`. No gradient in `src/`.
+- [x] `rg` over `src/` finds no `bg-[#` and no `/80` or `/85` or `/70` colour modifiers.
 - [ ] Focus ring is ink, visible on the first field.
-- [ ] `npm test` and `npm run build` pass. Prerendered headings are unchanged.
+- [x] `npm test` and `npm run build` pass. Prerendered headings are unchanged.
 
 ---
 
@@ -438,9 +469,9 @@ Series colours are text tokens that clear 3:1 on `--canvas`:
 
 | Series | Token | Resolved at cyan | Where it is passed |
 |---|---|---|---|
-| Savings, or a single balance | `--ink` | `#0e0f0c` | `savings.tsx` balance. `compare.tsx` savings. `goal.tsx` balance when `vehicle === "savings"`. |
-| Stocks | `--primary-text` | `#00587a` (`--cyan-text`, 7.84:1 on white) | `stocks.tsx` nominal. `compare.tsx` stocks. `goal.tsx` balance when `vehicle === "stocks"`. |
-| Today's euros | `--body` | `#454745` | `stocks.tsx` real, `compare.tsx` `stocksReal`, `goal.tsx` real. |
+| Savings, or a single balance | `--primary-text` (was `--ink`, see Decision 8) | `#00587a` (7.84:1 on white) | `savings.tsx` balance. `compare.tsx` savings. `goal.tsx` balance when `vehicle === "savings"`. |
+| Stocks | `--positive` (was `--primary-text`, see Decision 8) | `#2ead4b` (2.92:1, exception) | `stocks.tsx` nominal. `compare.tsx` stocks. `goal.tsx` balance when `vehicle === "stocks"`. |
+| Today's euros | `--body`, dashed `8 4` (Decision 8) | `#454745` | `stocks.tsx` real, `compare.tsx` `stocksReal`, `goal.tsx` real. |
 | Goal target | `--text-3`, dashed `4 4` | `#5f615d` | `goal.tsx` `target`. The legend still says "Target". |
 
 Do not pass `var(--chart-1)`, `var(--chart-2)`, `var(--primary)`, `var(--cyan-base)`, `var(--lime-base)`, or `var(--apricot-base)` as a stroke, fill of a line, or legend dot. `--primary-text` is the allowed accent-linked colour on white.
@@ -449,11 +480,11 @@ Pass `stroke="var(--ink)"` (and the siblings). Recharts writes that onto the SVG
 
 - Grid: `stroke="var(--hairline)"`, vertical still off. The grid is decorative, not a series.
 - Tick fill: `var(--text-3)`, `fontSize` 12 (`--fs-caption`).
-- Single series keeps the area chart. Fill is flat `var(--primary-pale)` (`--cyan-pale` `#d8efff`) with opacity 1, stroke `--ink`. Delete `fillOpacity={0.16}`. The pale step is a tint behind the ink line, not the accent base and not a thin mark.
+- Single series keeps the area chart. Fill is flat, opacity 1, and follows the stroke: `var(--primary-pale)` under savings, `var(--positive-pale)` under stocks (Decision 8). Delete `fillOpacity={0.16}`. The pale step is a tint behind the series line, not a thin mark.
 - Two or more series keep the line chart, no area.
 - `isAnimationActive={false}` stays, so the chart does not depend on the reduced-motion duration tokens.
-- Tooltip: white card, `--radius-md`, `--shadow-md`, ink text. Series names use the same tokens as the strokes. Set `cursor={false}` so the default grey cursor band does not introduce another colour.
-- Legend: the word plus an 8px disc (`size-2`, `--space-sm`). The word is the meaning. The disc uses the same token as the stroke.
+- Tooltip: white card, `--radius-md`, `--shadow-md`, ink text. Each row has the same line swatch as the legend; the text stays ink (Decision 8). Set `cursor={false}` so the default grey cursor band does not introduce another colour.
+- Legend and tooltip: the word plus a 24 × 8px swatch of the series line (same token, same `strokeDasharray`), so dashed series read as dashed. The word is the meaning. (Originally an 8px disc; changed after Decision 8 so the two dashed greys on the goal chart are told apart in the legend.)
 
 ---
 
@@ -581,11 +612,11 @@ Shell markup, classes only, behaviour unchanged:
 
 ### Acceptance
 
-- [ ] One accent fill on `/savings`: the mark, in cyan. Copy, nav, and focus are not cyan-base fills.
-- [ ] Footer shows the same stamp text as before, in `--mute-on-dark`, and `BuildStamp.test.ts` passes.
+- [x] One accent fill on `/savings`: the mark, in cyan. Copy, nav, and focus are not cyan-base fills.
+- [x] Footer shows the same stamp text as before, in `--mute-on-dark`, and `BuildStamp.test.ts` passes.
 - [ ] Tab order: skip link, wordmark, four calculators, copy, then the form. Focus ring visible on each.
-- [ ] At 390, 768, and 1280 the header does not scroll sideways and the nav items are at least 48px tall.
-- [ ] `npm test` and `npm run build` pass. Prerendered sentences unchanged.
+- [ ] At 390, 768, and 1280 the header does not scroll sideways and the nav items are at least 48px tall. (Checked at 500 — Chrome's minimum window — and 1280: no sideways scroll, nav links and copy button 48px. 390 and 768 not checked.)
+- [x] `npm test` and `npm run build` pass. Prerendered sentences unchanged.
 
 ---
 
@@ -599,9 +630,9 @@ Shell markup, classes only, behaviour unchanged:
 
 ### Acceptance
 
-- [ ] Each calculator page has one `h1`, matching the current string (`Compound a savings balance`, `Project an investment`, `Same deposits, two paths`, `What to save each month`, home `Expected returns, in euros`).
-- [ ] A long balance (eight digits plus cents) stays on one line inside the tile at 390px without page-level horizontal scroll.
-- [ ] Home cards still navigate to the four routes with the stored scenario search.
+- [x] Each calculator page has one `h1`, matching the current string (`Compound a savings balance`, `Project an investment`, `Same deposits, two paths`, `What to save each month`, home `Expected returns, in euros`).
+- [x] A long balance (eight digits plus cents) stays on one line inside the tile at 390px without page-level horizontal scroll. (Simulated by constraining `main` to 342px: `45 540 086,66 €` steps to 24px and does not overflow.)
+- [ ] Home cards still navigate to the four routes with the stored scenario search. (`to` and `search` unchanged in source; not clicked through.)
 
 ---
 
@@ -657,11 +688,11 @@ Compare mode keeps `lg:grid-cols-3` and the details spanning all three columns.
 
 ### Acceptance
 
-- [ ] Every id and `name` from the inventory is still in the DOM. Suffixes still read EUR, %, yr.
+- [ ] Every id and `name` from the inventory is still in the DOM. Suffixes still read EUR, %, yr. (Suffixes seen on `/savings` and `/goal`; ids not enumerated.)
 - [ ] An empty blur on "Current balance" still shows "Enter a number." in `--negative-deep`, associated by `aria-describedby`.
 - [ ] Keyboard: radios arrow within the group (native), checkboxes toggle with Space, selects open.
-- [ ] No second border on the inputs.
-- [ ] Calculation tests pass with no edits under `src/lib/`.
+- [x] No second border on the inputs.
+- [x] Calculation tests pass with no edits under `src/lib/`.
 
 ---
 
@@ -677,10 +708,10 @@ Apply the chart section. Then:
 
 ### Acceptance
 
-- [ ] `rg "#[0-9a-fA-F]{3,8}" src` prints no hits in TSX. `public/favicon.svg` and `scripts/og-image.mjs` still contain their current hexes. `rg "chart-1|chart-2|cyan-base|lime-base" src` prints no hits.
-- [ ] Savings chart is one ink line on a pale fill. Compare shows three distinguishable lines when inflation is on, and the legend words match.
-- [ ] Table still scrolls inside `max-h-[28rem]` and the header sticks.
-- [ ] `npm test` passes, including `src/content/seo.test.ts`.
+- [x] `rg "#[0-9a-fA-F]{3,8}" src` prints no hits in TSX. `public/favicon.svg` and `scripts/og-image.mjs` still contain their current hexes. `rg "chart-1|chart-2|cyan-base|lime-base" src` prints no hits outside the vendored `src/styles/`.
+- [ ] Savings chart is one ink line on a pale fill. Compare shows three distinguishable lines when inflation is on, and the legend words match. (Savings and goal checked; compare not viewed.)
+- [ ] Table still scrolls inside `max-h-[28rem]` and the header sticks. (Inner scrollbar seen; sticky header not checked.)
+- [x] `npm test` passes, including `src/content/seo.test.ts`.
 
 ---
 
@@ -694,11 +725,11 @@ Apply the chart section. Then:
 
 ### Acceptance
 
-- [ ] `npm run build` then `rg "That page is not here" dist/404.html`, `rg "Open the savings calculator" dist/404.html`, and `rg "Compound a savings balance" dist/savings/index.html`. `dist/404.html` does not contain "Back to Returno".
-- [ ] `git diff -- public/favicon.svg public/og.png scripts/og-image.mjs` is empty.
-- [ ] `dist/index.html` still contains both verification metas, the canonical link, and the JSON-LD script. `assertVerificationMeta` already enforces the metas during the build.
-- [ ] `npm run build:worker` succeeds. Policy string unchanged.
-- [ ] Leftover grep is clean or every hit is on the exception list.
+- [x] `npm run build` then `rg "That page is not here" dist/404.html`, `rg "Open the savings calculator" dist/404.html`, and `rg "Compound a savings balance" dist/savings/index.html`. `dist/404.html` does not contain "Back to Returno".
+- [x] `git diff -- public/favicon.svg public/og.png scripts/og-image.mjs` is empty (also against `main`).
+- [x] `dist/index.html` still contains both verification metas, the canonical link, and the JSON-LD script. `assertVerificationMeta` already enforces the metas during the build.
+- [x] `npm run build:worker` succeeds. Policy string unchanged.
+- [x] Leftover grep is clean or every hit is on the exception list.
 
 ---
 

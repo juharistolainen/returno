@@ -18,11 +18,11 @@ function HomePage() {
   return (
     <>
       <header className="max-w-3xl">
-        <p className="text-sm font-semibold tracking-wide text-savings uppercase">{home.eyebrow}</p>
-        <h1 className="mt-1 font-display text-4xl tracking-tight sm:text-5xl">{home.h1}</h1>
-        <p className="mt-3 text-lg text-muted">{home.lede}</p>
+        <p className="wds-eyebrow eyebrow">{home.eyebrow}</p>
+        <h1 className="display-md mt-2 mb-0">{home.h1}</h1>
+        <p className="wds-lead mt-3 mb-0">{home.lede}</p>
       </header>
-      <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+      <ul className="mt-8 grid gap-3 p-0 sm:grid-cols-2">
         <CalculatorLink to="/savings" scenario={scenario} title="Savings" text="Compound interest on a balance with regular top-ups." />
         <CalculatorLink to="/stocks" scenario={scenario} title="Stocks" text="An expected return after the annual fund fee." />
         <CalculatorLink to="/compare" scenario={scenario} title="Compare" text="The same deposits on both paths, and the gap at the end." />
@@ -45,10 +45,14 @@ function CalculatorLink({
   text: string;
 }) {
   return (
-    <li>
-      <Link to={to} search={scenarioToSearch(scenario) as Scenario} className="block rounded-2xl border border-line bg-card px-4 py-4">
-        <span className="font-display text-2xl">{title}</span>
-        <span className="mt-1 block text-sm text-muted">{text}</span>
+    <li className="mb-0">
+      <Link
+        to={to}
+        search={scenarioToSearch(scenario) as Scenario}
+        className="block h-full rounded-2xl bg-card p-6 text-ink no-underline"
+      >
+        <span className="display-xs block">{title}</span>
+        <span className="body-sm mt-1 block text-muted">{text}</span>
       </Link>
     </li>
   );

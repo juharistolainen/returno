@@ -50,7 +50,7 @@ const notFoundHtml = renderDocument(shell, {
   robots: "noindex",
   canonical: null,
   jsonLd: null,
-  body: `<main><h1>That page is not here</h1><p>The calculators live on Savings, Stocks, Compare, and Goal.</p><p><a href="/">Back to Returno</a></p></main>${buildStamp}`,
+  body: `<main class="wds-container py-8"><h1 class="display-sm">That page is not here</h1><p>The calculators live on Savings, Stocks, Compare, and Goal.</p><p><a href="/savings">Open the savings calculator</a></p></main>${buildStamp}`,
 });
 assertVerificationMeta(notFoundHtml, "/404.html");
 writeFileSync(join(dist, "404.html"), notFoundHtml);
@@ -68,7 +68,7 @@ function renderBuildStamp(meta) {
   if (buildStampText(meta.version, meta.time) !== `v${meta.version} · built ${label}`) {
     throw new Error("Build stamp text drifted from the shared formatter");
   }
-  return `<footer><p class="shrink-0 text-right text-xs whitespace-nowrap text-muted">v${escapeText(meta.version)} · built <time datetime="${escapeAttr(meta.time)}">${escapeText(label)}</time></p></footer>`;
+  return `<footer class="wds-band wds-band--dark px-6 py-6"><p class="caption shrink-0 text-right text-xs whitespace-nowrap text-mute-on-dark">v${escapeText(meta.version)} · built <time datetime="${escapeAttr(meta.time)}">${escapeText(label)}</time></p></footer>`;
 }
 
 function renderDocument(template, page) {
@@ -106,16 +106,16 @@ function renderPage(page) {
   const sections = page.sections
     .map(
       (section) =>
-        `<section><h2>${escapeText(section.heading)}</h2>${section.paragraphs.map((paragraph) => `<p>${escapeText(paragraph)}</p>`).join("")}</section>`,
+        `<section><h2 class="display-xs">${escapeText(section.heading)}</h2>${section.paragraphs.map((paragraph) => `<p>${escapeText(paragraph)}</p>`).join("")}</section>`,
     )
     .join("");
   const faqs =
     page.faqs.length === 0
       ? ""
-      : `<section><h2>Questions</h2>${page.faqs
-          .map((faq) => `<h3>${escapeText(faq.question)}</h3><p>${escapeText(faq.answer)}</p>`)
+      : `<section><h2 class="display-xs">Questions</h2>${page.faqs
+          .map((faq) => `<h3 class="body-strong">${escapeText(faq.question)}</h3><p>${escapeText(faq.answer)}</p>`)
           .join("")}</section>`;
-  return `<article><nav aria-label="Calculators">${nav}</nav><header><p>${escapeText(page.eyebrow)}</p><h1>${escapeText(page.h1)}</h1><p>${escapeText(page.lede)}</p></header>${sections}${faqs}<p>Estimates only, not financial advice. Returno does not know future rates, returns, fees, tax, or inflation.</p></article>`;
+  return `<article class="wds-container py-8"><nav aria-label="Calculators">${nav}</nav><header class="mt-6"><p class="wds-eyebrow eyebrow">${escapeText(page.eyebrow)}</p><h1 class="display-sm">${escapeText(page.h1)}</h1><p class="body-lg">${escapeText(page.lede)}</p></header>${sections}${faqs}<p>Estimates only, not financial advice. Returno does not know future rates, returns, fees, tax, or inflation.</p></article>`;
 }
 
 function escapeText(value) {

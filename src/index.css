@@ -1,29 +1,46 @@
 @import "tailwindcss";
+@import "./styles/wise-ds.css";
+/* Element rules must sit under utilities. Unlayered :where() would beat Tailwind. */
+@import "./styles/wise-ds-base.css" layer(base);
 
 @theme {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --color-paper: #f4f0e7;
-  --color-ink: #1c1814;
-  --color-card: #fffdf8;
-  --color-line: #e4d9c8;
-  --color-muted: #5e564c;
-  --color-savings: #0f6e62;
-  --color-savings-soft: #e6f3f0;
-  --color-stocks: #b4532a;
-  --color-stocks-soft: #fde8dc;
-  --color-real: #35557a;
+  --font-sans: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --color-paper: var(--canvas-soft);       /* page */
+  --color-ink: var(--ink);
+  --color-card: var(--canvas);             /* cards, inputs, nav */
+  --color-line: var(--hairline);           /* decorative dividers */
+  --color-line-soft: var(--hairline-soft); /* table rows */
+  --color-muted: var(--text-3);            /* captions that carry meaning */
+  --color-tint: var(--canvas-tint);        /* wells and the nav tray */
+  --color-stocks: var(--negative-deep);    /* errors and negative amounts */
+  --color-body: var(--body);               /* long-form copy */
+  --color-positive: var(--positive-deep);
+  --color-mute-on-dark: var(--mute-on-dark); /* footer stamp, Phase 3 */
 }
+
+/*
+  Tailwind utilities and the design system share --radius-* and --shadow-*.
+  These rules are unlayered, so they beat the utilities, and they do not
+  rewrite the custom properties the component classes read.
+  rounded-xl is the input utility (12px = --radius-md).
+  rounded-2xl is the card utility (24px = --radius-xl, not --radius-2xl which is 32px).
+*/
+.rounded-lg { border-radius: var(--radius-sm); }
+.rounded-xl { border-radius: var(--radius-md); }
+.rounded-2xl { border-radius: var(--radius-xl); }
+.rounded-full { border-radius: var(--radius-pill); }
+
+/* Tailwind's shadow utilities inline their own values. Floating UI uses the system's. */
+.shadow-md { box-shadow: var(--shadow-md); }
 
 body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
   color: var(--color-ink);
-  background:
-    radial-gradient(1000px 420px at 0% -10%, #fff9f0, transparent 55%),
-    radial-gradient(800px 380px at 100% 0%, #e8f4f1, transparent 50%),
-    var(--color-paper);
+  background: var(--color-paper);
 }
 
 #root {
@@ -31,6 +48,82 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-savings);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
+}
+
+.wds-band--dark :focus-visible {
+  outline-color: var(--focus-ring-on-dark);
+}
+
+.wds input,
+.wds select,
+.wds textarea {
+  accent-color: var(--ink);
+}
+
+.field-with-suffix {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: var(--control-sm);
+  padding: 0;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+}
+
+.field-with-suffix .wds-field__input {
+  border: 0;
+  width: auto;
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  background: transparent;
+  border-radius: 0;
+}
+
+.field-with-suffix > span {
+  flex: none;
+  padding-right: var(--space-lg);
+  color: var(--text-3);
+}
+
+.field-with-suffix.wds-field--error { border-color: var(--negative); }
+
+.copy-btn--copied,
+.copy-btn--copied:hover,
+.copy-btn--copied:active {
+  background: var(--positive-pale);
+  color: var(--positive-deep);
+}
+
+.copy-btn--failed,
+.copy-btn--failed:hover,
+.copy-btn--failed:active {
+  background: var(--negative-pale);
+  color: var(--negative-deep);
+}
+
+.summary-figure {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  letter-spacing: -0.015em;
+  line-height: 1;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+@container (max-width: 22rem) {
+  .summary-figure { font-size: var(--fs-xs); }
+}
+
+@container (max-width: 16rem) {
+  .summary-figure { font-size: var(--fs-body-lg); }
+}
+
+@container (max-width: 13rem) {
+  .summary-figure { font-size: var(--fs-body); font-weight: var(--fw-strong); }
 }

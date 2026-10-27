@@ -39,12 +39,13 @@ function GoalPage() {
     {
       dataKey: "balance",
       label: inflationOn ? "Nominal balance" : "Balance",
-      color: scenario.vehicle === "stocks" ? "#b4532a" : "#0f6e62",
+      color: scenario.vehicle === "stocks" ? "var(--positive)" : "var(--primary-text)",
+      fill: scenario.vehicle === "stocks" ? "var(--positive-pale)" : "var(--primary-pale)",
     },
-    ...(inflationOn ? [{ dataKey: "real", label: "Today's euros", color: "#35557a" }] : []),
-    ...(scenario.targetKind === "balance" ? [{ dataKey: "target", label: "Target", color: "#1c1814" }] : []),
+    ...(inflationOn ? [{ dataKey: "real", label: "Today's euros", color: "var(--body)", dash: "8 4" }] : []),
+    ...(scenario.targetKind === "balance" ? [{ dataKey: "target", label: "Target", color: "var(--text-3)", dash: "4 4" }] : []),
   ];
-  const tone = plan.status === "unreachable" ? "text-stocks" : plan.status === "reached" ? "text-savings" : "text-ink";
+  const tone = plan.status === "unreachable" ? "text-stocks" : plan.status === "reached" ? "text-positive" : "text-ink";
 
   return (
     <>
@@ -54,11 +55,11 @@ function GoalPage() {
         lede="Set the amount and the date. Returno solves the monthly top-up after tax and fees."
       />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
-        <section className="rounded-2xl border border-line bg-card p-4 sm:p-5">
+        <section className="rounded-2xl bg-card p-6">
           <GoalForm scenario={scenario} onScenario={update} today={sessionToday} />
         </section>
         <div className="flex min-w-0 flex-col gap-6">
-          <p className={`rounded-2xl border border-line bg-card px-4 py-3 text-sm ${tone}`}>{plan.message}</p>
+          <p className={`body-sm m-0 rounded-2xl bg-card px-6 py-4 ${tone}`}>{plan.message}</p>
           <Summary
             stats={[
               { label: "Monthly top-up", value: formatEur(plan.monthlyContribution), tone },
