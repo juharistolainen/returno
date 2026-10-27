@@ -120,7 +120,7 @@ The only `hasInstallScript` entry is `fsevents@2.3.3`, an optional macOS depende
 | `oxlint` | 1.50.0 | 1.90.0 |
 | `vite` | 8.0.8 | 8.3.5 |
 
-**Migration:** TanStack Table 9 is the only API change. `YearTable` now calls `useTable` with an explicit `tableFeatures({})`. The core row model is built in, so `getCoreRowModel` is gone. `ColumnDef` takes the feature set as its first type argument. The table reads cells with `getAllCells()` because column visibility is no longer included unless that feature is registered. Headers and cells render through `table.FlexRender`. TypeScript 7 and Vitest 5 needed no config change. `tsconfig` is unchanged, and `vitest.config.ts` is unchanged. Lint, typecheck, the unit tests, and `npm run build` passed at the time. The suite is 87 tests as of the CI change.
+**Migration:** TanStack Table 9 is the only API change. `YearTable` now calls `useTable` with an explicit `tableFeatures({})`. The core row model is built in, so `getCoreRowModel` is gone. `ColumnDef` takes the feature set as its first type argument. The table reads cells with `getAllCells()` because column visibility is no longer included unless that feature is registered. Headers and cells render through `table.FlexRender`. TypeScript 7 and Vitest 5 needed no config change. `tsconfig` is unchanged, and `vitest.config.ts` is unchanged. Lint, typecheck, the unit tests, and `npm run build` passed at the time. The suite is 89 tests as of the Node zip writer.
 
 ### Informational
 
@@ -190,12 +190,12 @@ As of 27 October 2026, after v0.3.4:
 
 - The Worker returns 404, 301, and 405 itself. Unknown paths, including `/_redirects` and `/404.html`, get the prerendered not-found page with status 404. There is no `index.html` fallback.
 - Tag protection is on through the `Release tags` ruleset.
-- The test suite is 87 tests. It covers the calculators, search params, and the worker routing cases, including the path-traversal and open-redirect regressions.
+- The test suite is 89 tests. It covers the calculators, search params, the site zip, and the worker routing cases, including the path-traversal and open-redirect regressions.
 - The GitHub Pages site is unpublished. Pages leftovers (`build:pages`, `/returno/` base, `spaFallback`, `public/_redirects`) are removed.
 - Cloudflare zone settings in use: Always Use HTTPS is on, and the minimum TLS version is 1.2.
 - Dependabot (npm and GitHub Actions, weekly), CodeQL default setup, and private vulnerability reporting are enabled.
 - CI (check name `CI / ci`) runs on pull requests to `main` and on pushes to `main`. It uses Node 22 and runs lint, typecheck, test, build, `build:worker`, and `npm audit --omit=dev --audit-level=high`.
-- A `v*` tag runs the release workflow, which builds `worker.mjs` and attaches it to the GitHub release together with `returno-x.y.z.zip`. A merge does not deploy. A Cloudflare deploy happens only when the owner asks.
+- A `v*` tag runs the release workflow, which builds `worker.mjs` and attaches it to the GitHub release together with `returno-x.y.z.zip`. The zip is written by `scripts/zip-site.mjs` (Node). There is no Python in the repo. A merge does not deploy. A Cloudflare deploy happens only when the owner asks.
 
 ## Left for Juha
 

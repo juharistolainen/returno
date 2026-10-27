@@ -50,7 +50,7 @@ npm run build && npm run build:worker
 
 A version tag `v*` runs the release workflow, which lints, typechecks, tests, builds the site, runs `build:worker`, and attaches `returno-x.y.z.zip` and `worker.mjs` to the GitHub release. The zip is the prerendered site with `index.html` at the top of the archive, kept so the files can be inspected. Production responses come from the Worker. Deploying to Cloudflare is manual, and only when the owner explicitly asks. A merge does not deploy.
 
-`npm run package:site` builds that zip locally.
+`npm run zip` packs an existing `dist/` into `returno-<version>.zip`. `npm run package:site` builds the site and then runs that.
 
 ## More
 
