@@ -8,7 +8,9 @@
 
 **Tech Stack:** Vite 8, React 19, TypeScript, TanStack Router / Form / Table, Recharts 3, Tailwind 4, Vitest 5. Production is a self-contained Cloudflare Worker built by `npm run build && npm run build:worker`.
 
-Inventory below is from `main` at `0f32307` (v0.3.4). The design export was read from a scratch unzip of the uploaded package (`wise-ds-web/AGENT.md`, which this plan treats as the retrofit playbook, plus `DESIGN.md`, `patterns.md`, `tokens.json`, `css/wise-ds.css`, `css/wise-ds-base.css`, `react/wise-ds.d.ts`, `example.html`). That package is not in the repo yet.
+Inventory below is from `main` at `0f32307` (v0.3.4). `src/` and `index.html` are unchanged at `31d4078`, so it still holds there. Later commits removed the GitHub Pages build (`build:pages`, the `spaFallback` plugin, `public/_redirects`) and moved the Action pins.
+
+**Status (27 Oct 2026):** decisions closed, no phase started. There is no `src/styles/`, and `src/main.tsx` still imports `@fontsource`. The design export was read from a scratch unzip of the uploaded package (`wise-ds-web/AGENT.md`, which this plan treats as the retrofit playbook, plus `DESIGN.md`, `patterns.md`, `tokens.json`, `css/wise-ds.css`, `css/wise-ds-base.css`, `react/wise-ds.d.ts`, `example.html`). That package is not in the repo yet.
 
 ## Global constraints
 
@@ -175,7 +177,7 @@ There is no `font-src`, so fonts use `default-src 'self'`. A same-origin fingerp
 
 `style-src 'unsafe-inline'` stays for Recharts SVG `style` attributes and for the hidden textarea in `copyWithTextarea` (`AppShell.tsx`), which sets `style` properties. `style-src-attr` falls back to `style-src`. A hash cannot allow those attributes. The comment above `contentSecurityPolicy` already says this.
 
-`npm run build:pages` is the old project-site path. It does not prerender. Production is `npm run build` then `npm run build:worker`. Design work does not need to change the Pages plugin.
+Production is `npm run build` then `npm run build:worker`. There is no other build path. The GitHub Pages build was removed.
 
 ### Acceptance
 
@@ -525,11 +527,9 @@ Change the link so both 404s match. The static body becomes:
 <main><h1 class="display-sm">That page is not here</h1><p>The calculators live on Savings, Stocks, Compare, and Goal.</p><p><a href="/savings">Open the savings calculator</a></p></main>
 ```
 
-"Open the savings calculator" is the label to keep. It is sentence case and it names the destination. "Back to Returno" does not. The heading and the sentence under it stay. The Worker still serves this file with status 404 (`worker-route.mjs`). `vite.config.ts` `spaFallback` copies `index.html` over `404.html` during `vite build`, and `prerender.mjs` runs after that and writes the real 404. Do not reorder `package.json`'s `build` script.
+"Open the savings calculator" is the label to keep. It is sentence case and it names the destination. "Back to Returno" does not. The heading and the sentence under it stay. The Worker still serves this file with status 404 (`worker-route.mjs`). `prerender.mjs` writes `dist/404.html` from the built shell, so it must run after `vite build`. Do not reorder `package.json`'s `build` script.
 
 Once `<body class="wds">` and `wise-ds-base.css` are on the shell, unclassed `p` and `a` pick up the element styles (`:where`, so utilities still win in the app). The `display-sm` class on the `h1` matches the client heading. The stamp footer uses the dark-band classes.
-
-`build:pages` never runs prerender, so its `404.html` remains a shell copy. That script is not the production path. Leave it.
 
 **Prerendered routes.** `renderPage` output (nav, eyebrow, h1, lede, sections, FAQ, short disclaimer) keeps every string. Add classes only: `wds-container` is unnecessary inside `#root` if the shell CSS already centres the app; the no-JS document has no shell, so wrap `renderPage` in a container that uses the same max width (1200px, `--space-xl` gutters) and add `display-sm` on the `h1`, `body-lg` on the lede, `display-xs` on `h2`. Anchors stay the same paths, including Home for `/`.
 

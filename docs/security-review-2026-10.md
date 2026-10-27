@@ -1,7 +1,7 @@
 # Returno security and bug review
 
 Reviewed commit: `d282362` (v0.3.0 on `main`), plus the fixes that followed through v0.3.4.
-Date: 27 October 2026.
+Date: 27 October 2026. Re-checked against `main` at `31d4078`, after the Dependabot Action upgrades.
 Scope: the whole repository. Production is the Cloudflare Worker `returno`. It serves prerendered HTML and returns real 404, 301, and 405 responses. It does not fall back to `index.html`.
 
 ## Result
@@ -24,7 +24,7 @@ The same floating-tag pattern applied to `actions/checkout`, `actions/setup-node
 
 **Evidence:** `.github/workflows/release-site.yml` and the deleted `.github/workflows/pages.yml`. `contents: write` is set on the release workflow, which is what publishing a release needs. The pull-request workflow is `contents: read` only.
 
-**Fix:** each action is pinned to a full commit SHA, with the version in a comment (`action-gh-release` v2.6.2, `checkout` v4.4.0, `setup-node` v4.4.0, `upload-pages-artifact` v3.0.1, `deploy-pages` v4.0.5). Major upgrades (checkout v7, setup-node v7, deploy-pages v5) were not taken. The Pages workflow was later deleted (I3), so only the release-workflow pins remain.
+**Fix:** each action is pinned to a full commit SHA, with the version in a comment. The first pins were `action-gh-release` v2.6.2, `checkout` v4.4.0, and `setup-node` v4.4.0. The Pages workflow was later deleted (I3). Dependabot has since moved the pins, still as SHAs, to `checkout` v7.0.1, `setup-node` v7.1.0, and `action-gh-release` v3.0.3 (PRs #14, #15, #16). `ci.yml` and `release-site.yml` use the same pins.
 
 ### Low
 
@@ -134,7 +134,7 @@ A shared link can still set any in-range scenario. That is the feature. It canno
 
 #### I2. Content-Security-Policy is not set in this repo
 
-**Status:** done on the generated Worker (`scripts/build-worker.mjs`). Every response, including 301, 404, and 405, sends:
+**Status:** done on the generated Worker. The headers are set in `scripts/worker-route.mjs`, which `scripts/build-worker.mjs` inlines into `worker.mjs`. Every response, including 301, 404, and 405, sends:
 
 ```
 Content-Security-Policy: default-src 'self'; script-src 'self' <sha256 of each JSON-LD block>; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests
@@ -172,6 +172,14 @@ Checked against the existing tests and extra cases added here:
 
 No tokens, private keys, or `.env` files are in the tree. `git` history for the application is the public calculator plus the release commits. Release zips are not committed. `npm audit` was run for the whole tree and with `--omit=dev`; both were clean.
 
+#### I6. SECURITY.md was the GitHub template
+
+**Status:** fixed.
+
+`SECURITY.md` still held GitHub's placeholder text. It listed versions 5.1.x and 4.0.x as supported, which Returno has never had, and it gave no way to report an issue.
+
+**Fix:** it now says that only the latest release and returno.site are supported, and that reports go through GitHub private vulnerability reporting, which is enabled on the repository.
+
 ## What the review fixes changed
 
 - Pinned the Actions used by the release workflow to commit SHAs. The Pages workflow was removed instead of kept in a pinned, disabled state.
@@ -183,17 +191,19 @@ No tokens, private keys, or `.env` files are in the tree. `git` history for the 
 - Stopped non-finite fund fees from producing `NaN`.
 - Rejected non-decimal strings in scenario numbers.
 - Added tests for those cases, plus a small grid of savings rates checked against the forward projection.
+- Replaced the template `SECURITY.md` with the real support and reporting policy.
 
 ## Current state
 
-As of 27 October 2026, after v0.3.4:
+As of 27 October 2026, `main` at `31d4078` (v0.3.4):
 
 - The Worker returns 404, 301, and 405 itself. Unknown paths, including `/_redirects` and `/404.html`, get the prerendered not-found page with status 404. There is no `index.html` fallback.
 - Tag protection is on through the `Release tags` ruleset.
-- The test suite is 89 tests. It covers the calculators, search params, the site zip, and the worker routing cases, including the path-traversal and open-redirect regressions.
+- The test suite is 89 tests in 13 files, and all pass. It covers the calculators, search params, the site zip, and the worker routing cases, including the path-traversal and open-redirect regressions.
 - The GitHub Pages site is unpublished. Pages leftovers (`build:pages`, `/returno/` base, `spaFallback`, `public/_redirects`) are removed.
 - Cloudflare zone settings in use: Always Use HTTPS is on, and the minimum TLS version is 1.2.
-- Dependabot (npm and GitHub Actions, weekly), CodeQL default setup, and private vulnerability reporting are enabled.
+- Dependabot (npm and GitHub Actions, weekly), CodeQL default setup, and private vulnerability reporting are enabled. Actions are pinned by SHA at `checkout` v7.0.1, `setup-node` v7.1.0, and `action-gh-release` v3.0.3.
+- `npm audit` (full tree and `--omit=dev`) reports 0 vulnerabilities, and `npm outdated` is empty.
 - CI (check name `CI / ci`) runs on pull requests to `main` and on pushes to `main`. It uses Node 22 and runs lint, typecheck, test, build, `build:worker`, and `npm audit --omit=dev --audit-level=high`.
 - A `v*` tag runs the release workflow, which builds `worker.mjs` and attaches it to the GitHub release together with `returno-x.y.z.zip`. The zip is written by `scripts/zip-site.mjs` (Node). There is no Python in the repo. A merge does not deploy. A Cloudflare deploy happens only when the owner asks.
 
