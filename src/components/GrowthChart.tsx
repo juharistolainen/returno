@@ -5,6 +5,7 @@ interface Series {
   dataKey: string;
   label: string;
   color: string;
+  fill?: string;
   dash?: string;
 }
 
@@ -84,7 +85,7 @@ export function GrowthChart({
                   dataKey={item.dataKey}
                   name={item.label}
                   stroke={item.color}
-                  fill="var(--primary-pale)"
+                  fill={item.fill}
                   fillOpacity={1}
                   strokeWidth={2.25}
                   dot={false}
