@@ -1,21 +1,13 @@
-# Security Policy
+# Security policy
 
-## Supported Versions
+## Supported versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+Only the latest release, and the build running on https://returno.site, get security fixes. Older tags are not patched.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+## Reporting a vulnerability
 
-## Reporting a Vulnerability
+Report it privately through GitHub: open the repository's **Security** tab and choose **Report a vulnerability**. Please do not open a public issue.
 
-Use this section to tell people how to report a vulnerability.
+Returno runs in the browser and has no accounts or server-side data. The useful areas to look at are the Cloudflare Worker (`scripts/worker-route.mjs`: routing, redirects, security headers), the parsing of URLs and `localStorage` (`src/lib/scenario.ts`), and the build and release workflows.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+The October 2026 review is in [docs/security-review-2026-10.md](docs/security-review-2026-10.md).

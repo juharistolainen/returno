@@ -1,13 +1,14 @@
 # Returno SEO and AI search plan
 
 Date: 2026-10-27
-Scope: covers https://returno.site at v0.3.0 (production build on the `returno` Cloudflare Worker).
+Scope: the audit covers https://returno.site at v0.3.0 (production build on the `returno` Cloudflare Worker). Status marks are updated through v0.3.4 (`main` at `31d4078`).
 
-This plan describes what returno.site serves to crawlers today, where that blocks organic and AI visibility, and a prioritised what, where and why plan to fix it. The audit is as of 27 Oct 2026 (Helsinki time). It is research only: nothing on the site, the repo or Cloudflare was changed while preparing it.
+This plan describes what returno.site served to crawlers at v0.3.0, where that blocks organic and AI visibility, and a prioritised what, where and why plan to fix it. The audit is as of 27 Oct 2026 (Helsinki time). It is research only: nothing on the site, the repo or Cloudflare was changed while preparing it.
 
 ## Contents
 
 - [Executive summary](#executive-summary)
+- [Status at v0.3.4](#status-at-v034)
 - [Audit findings](#audit-findings)
 - [Quick wins (this week)](#quick-wins-this-week)
 - [Next 1-2 months](#next-1-2-months)
@@ -23,6 +24,8 @@ This plan describes what returno.site serves to crawlers today, where that block
 
 > [!IMPORTANT]
 > **The one thing that matters most:** every URL on returno.site, including robots.txt, sitemap.xml and a made-up path, returns the same 626-byte HTML shell with an empty root div and status 200. Search engines see one thin page, and most AI crawlers, which do not run JavaScript, see nothing. Prerendering each route to real HTML is the precondition for everything else.
+>
+> **Fixed in v0.3.1 ([PR #6](https://github.com/juharistolainen/returno/pull/6)).** Every route is prerendered, and the Worker returns 404 for unknown paths.
 
 - Prerender every route at build time (TanStack Start static prerender, or a Vite SSG plugin) so the H1, the explanation and a worked default result are in the raw HTML.
 - Give each route its own title, description, canonical, Open Graph tags and JSON-LD, make `/` a real landing page, and serve real robots.txt, sitemap.xml, llms.txt and a real 404.
@@ -33,29 +36,42 @@ This plan describes what returno.site serves to crawlers today, where that block
 
 Google states AI Overviews and AI Mode have no extra requirements beyond being indexed and snippet-eligible, and that llms.txt is not needed. ChatGPT, Claude and Perplexity search each run their own crawlers, which read raw HTML. So the plan is mostly classic technical SEO done properly, plus content that answers questions directly.
 
+## Status at v0.3.4
+
+Done in the repo: prerendered routes, real 404 and 405 responses, robots.txt, sitemap.xml, llms.txt and llms-full.txt, per-route titles, descriptions, canonicals, Open Graph and Twitter tags, JSON-LD (`WebApplication`, `FAQPage`), a landing page at `/`, default params kept out of the URL, noindex on both 404s, the duplicate-host redirect, and the Google and Bing verification metas. The GitHub Pages copy is unpublished, and Always Use HTTPS is on.
+
+Still open, in plan order:
+
+- Verify the Search Console and Bing Webmaster Tools properties and submit the sitemap. The meta tags are in place; this needs the current build deployed.
+- IndexNow (Crawler Hints) and Cloudflare Web Analytics.
+- The repo homepage field, topics, and a README link.
+- A methodology and about page, the Finnish `/fi/` routes with hreflang, and guides.
+- `WebSite`, `Person`, and `BreadcrumbList` JSON-LD, per-route OG images, and per-page `.md` copies.
+- Everything under Ongoing, including the agent API and MCP server.
+
 ## Audit findings
 
-Checked with curl, GitHub raw files and a read-only Cloudflare API GET on 27 Oct 2026.
+Checked with curl, GitHub raw files and a read-only Cloudflare API GET on 27 Oct 2026, at v0.3.0. The last column is the repo state at v0.3.4. Cloudflare dashboard settings were not checked again.
 
-| Check | What I found | Status |
-|---|---|---|
-| Raw HTML | 626 bytes on every route; `<div id="root">` is empty. All copy, H1s and results render client-side only. | Critical |
-| Status codes | `/`, `/savings`, `/stocks`, `/compare`, `/goal`, `/nonexistent-xyz` all 200 with identical HTML. Soft 404 for every bad URL. | Critical |
-| robots.txt | Returns index.html (text/html, 200). There is no real file in `public/`. | Missing |
-| sitemap.xml | Returns index.html. None generated. | Missing |
-| llms.txt | Returns index.html. | Missing |
-| Title, description | One static pair for all routes: "Returno — expected returns" and a generic description. No keyword such as compound interest or säästölaskuri. | Weak |
-| Canonical | None. `PersistScenario` in `AppShell.tsx` rewrites every clean URL to a long query string with about 17 params, so every scenario is a new URL. | Critical |
-| Home page | `/` does `throw redirect({to: "/savings"})` in `router.tsx`, a client-side redirect. The root URL has no content of its own. | Weak |
-| Open Graph, Twitter | None. Shared links show no preview image or description. | Missing |
-| Structured data | No JSON-LD. | Missing |
-| Language | `lang="en"`, English only. No Finnish version, no hreflang, although the tax default (30%) is Finnish. | Gap |
-| Duplicate hosts | returno.riussi.workers.dev (200) and juharistolainen.github.io/returno/ (200) serve the same app. returno.pages.dev gives 522. www has no DNS record. | Fix |
-| HTTPS | Cloudflare Always Use HTTPS is off. HSTS not set. Port 80 could not be tested. | Fix |
-| Cloudflare bots | Free plan. Bot Fight Mode off; AI bot blocking, AI Crawl Control blocks (search, agent, training) and managed robots.txt all off. GPTBot, ClaudeBot, PerplexityBot, OAI-SearchBot, Googlebot all got 200. | OK |
-| Analytics | No Cloudflare Web Analytics site for returno.site (other domains on the account have one). | Missing |
-| Domain age | Zone and DNS record created 27 Oct 2026. Zero links, zero history; expect weeks before rankings move. | Note |
-| Repo signals | `public/_redirects` (`/* /index.html 200`) and the `spaFallback` Vite plugin (copies index.html to 404.html) both cause the soft 404s. | Note |
+| Check | What I found | Status | At v0.3.4 |
+|---|---|---|---|
+| Raw HTML | 626 bytes on every route; `<div id="root">` is empty. All copy, H1s and results render client-side only. | Critical | Fixed. `scripts/prerender.mjs` writes each route's H1, copy and FAQ. |
+| Status codes | `/`, `/savings`, `/stocks`, `/compare`, `/goal`, `/nonexistent-xyz` all 200 with identical HTML. Soft 404 for every bad URL. | Critical | Fixed. The Worker returns 404 for unknown paths and 405 for methods other than GET and HEAD. |
+| robots.txt | Returns index.html (text/html, 200). There is no real file in `public/`. | Missing | Fixed. `public/robots.txt`. |
+| sitemap.xml | Returns index.html. None generated. | Missing | Fixed. Generated at build. |
+| llms.txt | Returns index.html. | Missing | Fixed. `llms.txt` and `llms-full.txt` are generated at build. |
+| Title, description | One static pair for all routes: "Returno — expected returns" and a generic description. No keyword such as compound interest or säästölaskuri. | Weak | Fixed. Per route, from `src/content/seo.ts`. |
+| Canonical | None. `PersistScenario` in `AppShell.tsx` rewrites every clean URL to a long query string with about 17 params, so every scenario is a new URL. | Critical | Fixed. Canonical link on every page. Default params stay out of the URL. |
+| Home page | `/` does `throw redirect({to: "/savings"})` in `router.tsx`, a client-side redirect. The root URL has no content of its own. | Weak | Fixed. `src/routes/home.tsx`. |
+| Open Graph, Twitter | None. Shared links show no preview image or description. | Missing | Fixed. One shared `/og.png`. |
+| Structured data | No JSON-LD. | Missing | Fixed. `WebApplication` and `FAQPage`. |
+| Language | `lang="en"`, English only. No Finnish version, no hreflang, although the tax default (30%) is Finnish. | Gap | Open. |
+| Duplicate hosts | returno.riussi.workers.dev (200) and juharistolainen.github.io/returno/ (200) serve the same app. returno.pages.dev gives 522. www has no DNS record. | Fix | Fixed. Other hosts get a 301 to returno.site, `*.workers.dev` gets `X-Robots-Tag: noindex`, and GitHub Pages is unpublished. |
+| HTTPS | Cloudflare Always Use HTTPS is off. HSTS not set. Port 80 could not be tested. | Fix | Fixed. Always Use HTTPS is on, minimum TLS 1.2, and the Worker sends HSTS. |
+| Cloudflare bots | Free plan. Bot Fight Mode off; AI bot blocking, AI Crawl Control blocks (search, agent, training) and managed robots.txt all off. GPTBot, ClaudeBot, PerplexityBot, OAI-SearchBot, Googlebot all got 200. | OK | Not checked again. |
+| Analytics | No Cloudflare Web Analytics site for returno.site (other domains on the account have one). | Missing | Open. |
+| Domain age | Zone and DNS record created 27 Oct 2026. Zero links, zero history; expect weeks before rankings move. | Note | Note. |
+| Repo signals | `public/_redirects` (`/* /index.html 200`) and the `spaFallback` Vite plugin (copies index.html to 404.html) both cause the soft 404s. | Note | Fixed. Both removed in [PR #12](https://github.com/juharistolainen/returno/pull/12). |
 
 ## Prioritised plan
 
@@ -67,11 +83,11 @@ Agent column: **Yes** = a coding agent can implement it from the repo. **Partly*
 |---|---|---|---|
 | Real robots.txt allowing all crawlers and pointing to the sitemap ✅ Done ([PR #6](https://github.com/juharistolainen/returno/pull/6)) | `public/robots.txt` | Today robots.txt is HTML, which crawlers treat as no rules and no sitemap hint. A real file also lets you state AI crawler choices. | Yes |
 | sitemap.xml listing the 5 routes (later the `/fi/` ones with hreflang alternates) and lastmod ✅ Done ([PR #6](https://github.com/juharistolainen/returno/pull/6)) | `public/sitemap.xml`, or generated at build | Fast discovery on a brand-new domain; submitted in GSC and Bing. | Yes |
-| Per-route title, description, canonical and OG/Twitter tags ✅ Done ([PR #6](https://github.com/juharistolainen/returno/pull/6)) | `head` option on each route in `src/routes/*.tsx`, `<HeadContent />` in the root route | Distinct titles such as "Compound interest calculator with monthly deposits" target real queries. Works client-side now, and lands in raw HTML once prerendered. | Yes |
+| Per-route title, description, canonical and OG/Twitter tags ✅ Done ([PR #6](https://github.com/juharistolainen/returno/pull/6)): the prerender writes them into each HTML file, and `SeoBlock` sets the title, description and robots in the browser. The route `head` option and `<HeadContent />` are not used. | `head` option on each route in `src/routes/*.tsx`, `<HeadContent />` in the root route | Distinct titles such as "Compound interest calculator with monthly deposits" target real queries. Works client-side now, and lands in raw HTML once prerendered. | Yes |
 | Canonical to the bare path and stop adding default params ✅ Done ([PR #8](https://github.com/juharistolainen/returno/pull/8)) | `src/components/AppShell.tsx` `PersistScenario`, `src/lib/search.ts` | Only write params that differ from defaults (keep localStorage restore). Prevents thousands of duplicate URLs; canonical covers shared scenario links. | Yes |
-| Noindex the not-found view | `NotFound` component in `src/router.tsx` (add `<meta name="robots" content="noindex">` via head) | Google's documented stopgap for soft 404s in SPAs until a true 404 status ships with prerendering. | Yes |
-| Stop serving duplicate hosts ✅ Done in the worker ([PR #6](https://github.com/juharistolainen/returno/pull/6)): other hosts 301 to https://returno.site, and `*.workers.dev` is served with `X-Robots-Tag: noindex`. Unpublishing the GitHub Pages site is still manual. | Worker settings: disable the `workers.dev` route and preview URLs (or add `X-Robots-Tag: noindex` for non-returno.site hosts); unpublish the GitHub Pages site | Two copies of the same app split signals and can outrank the new domain. | Partly |
-| Always Use HTTPS on, HSTS on | Cloudflare zone > SSL/TLS > Edge Certificates | One canonical scheme; avoids http duplicates. | No (you) |
+| Noindex the not-found view ✅ Done ([PR #6](https://github.com/juharistolainen/returno/pull/6)): `NotFound` in `src/components/AppShell.tsx` sets `noindex`, and the static `404.html` has it in the markup. The Worker also returns status 404. | `NotFound` component in `src/router.tsx` (add `<meta name="robots" content="noindex">` via head) | Google's documented stopgap for soft 404s in SPAs until a true 404 status ships with prerendering. | Yes |
+| Stop serving duplicate hosts ✅ Done in the worker ([PR #6](https://github.com/juharistolainen/returno/pull/6)): other hosts 301 to https://returno.site, and `*.workers.dev` is served with `X-Robots-Tag: noindex`. The GitHub Pages site is unpublished. | Worker settings: disable the `workers.dev` route and preview URLs (or add `X-Robots-Tag: noindex` for non-returno.site hosts); unpublish the GitHub Pages site | Two copies of the same app split signals and can outrank the new domain. | Partly |
+| Always Use HTTPS on, HSTS on ✅ Done: Always Use HTTPS is on with minimum TLS 1.2, and the Worker sends `Strict-Transport-Security` on every response. | Cloudflare zone > SSL/TLS > Edge Certificates | One canonical scheme; avoids http duplicates. | No (you) |
 | Google Search Console domain property, submit sitemap ✅ Partly done ([PR #8](https://github.com/juharistolainen/returno/pull/8)): the google-site-verification meta tag is on every page. Verifying the property and submitting the sitemap in Search Console waits on deploy. | search.google.com/search-console, verify via Cloudflare DNS TXT | Indexing status, URL inspection with the rendered HTML, query data. | No (you) |
 | Bing Webmaster Tools (import from GSC), enable IndexNow ✅ Partly done ([PR #8](https://github.com/juharistolainen/returno/pull/8)): the msvalidate.01 meta tag is on every page. Verification in Bing Webmaster Tools waits on deploy. IndexNow is still manual. | bing.com/webmasters; Cloudflare Caching > Configuration > Crawler Hints | Bing powers Copilot and contributes to ChatGPT search; its AI Performance report shows Copilot citations. Crawler Hints pings IndexNow on change. | No (you) |
 | Cloudflare Web Analytics | Cloudflare dashboard > Web Analytics > add returno.site (automatic setup on proxied zone) | Free, cookieless, so no consent banner; shows referrers such as chatgpt.com and perplexity.ai. | No (you) |
@@ -81,8 +97,8 @@ Agent column: **Yes** = a coding agent can implement it from the repo. **Partly*
 
 | What to add | Where | Why | Agent |
 |---|---|---|---|
-| Prerender every route to static HTML ✅ Done ([PR #6](https://github.com/juharistolainen/returno/pull/6)) | Option A: move to TanStack Start with `spa.enabled` and `prerender: { enabled: true, crawlLinks: true }` plus its `sitemap` option. Option B: `@wroud/vite-plugin-ssg` in `vite.config.ts`. Guard localStorage reads in `validateSearch` at build time. | The single biggest fix. Crawlers that skip JS (GPTBot, ClaudeBot, PerplexityBot, Bing at times) then see the H1, copy and a default worked result. Option A fits the existing TanStack Router; avoid `vite-prerender-plugin`, reported to hang with React 19. | Yes |
-| True 404 status ✅ Done in the Worker ([PR #6](https://github.com/juharistolainen/returno/pull/6)). `public/_redirects` and the Pages `spaFallback` are unchanged, so a Pages zip still returns 200 for unknown paths. | `wrangler` config `assets.not_found_handling = "404-page"` with a prerendered `404.html`; remove `public/_redirects` and the `spaFallback` plugin | Unknown URLs then return 404 while known routes serve their own HTML. Fixes soft 404s at the source. | Yes |
+| Prerender every route to static HTML ✅ Done ([PR #6](https://github.com/juharistolainen/returno/pull/6)) with neither option: `scripts/prerender.mjs` writes HTML strings from `src/content/seo.ts` into the Vite shell after `vite build`. React does not render on the server, and the app mounts with `createRoot`. | Option A: move to TanStack Start with `spa.enabled` and `prerender: { enabled: true, crawlLinks: true }` plus its `sitemap` option. Option B: `@wroud/vite-plugin-ssg` in `vite.config.ts`. Guard localStorage reads in `validateSearch` at build time. | The single biggest fix. Crawlers that skip JS (GPTBot, ClaudeBot, PerplexityBot, Bing at times) then see the H1, copy and a default worked result. Option A fits the existing TanStack Router; avoid `vite-prerender-plugin`, reported to hang with React 19. | Yes |
+| True 404 status ✅ Done in the Worker ([PR #6](https://github.com/juharistolainen/returno/pull/6)). `public/_redirects` and the `spaFallback` plugin were removed in [PR #12](https://github.com/juharistolainen/returno/pull/12). | `wrangler` config `assets.not_found_handling = "404-page"` with a prerendered `404.html`; remove `public/_redirects` and the `spaFallback` plugin | Unknown URLs then return 404 while known routes serve their own HTML. Fixes soft 404s at the source. | Yes |
 | Real landing page at `/` ✅ Done ([PR #6](https://github.com/juharistolainen/returno/pull/6)) | `src/router.tsx` index route plus a new `src/routes/home.tsx` | One page that names what Returno is, links the four calculators and ranks for the brand and broad queries; no JS redirect. | Yes |
 | Answer content under each calculator ✅ Done ([PR #6](https://github.com/juharistolainen/returno/pull/6)) | Below the form in `savings.tsx`, `stocks.tsx`, `compare.tsx`, `goal.tsx` | 300 to 800 words: what it calculates, the formula, a worked example with default numbers, assumptions (tax 30%, fee, inflation), what it leaves out, a short visible FAQ. This is what AI answers quote; competitors that rank have exactly this. | Partly |
 | Methodology and About page | `/methodology` (or `/how-it-works`) and `/about` | Formulas, the Finnish capital income tax basis with a vero.fi link, last updated date, author (Juha, FinTech CTO). Trust signals for a finance (YMYL) topic. | Partly |

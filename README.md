@@ -21,7 +21,7 @@ Vite 8, React 19, TypeScript 7, TanStack Router 1, TanStack Form 1, TanStack Tab
 
 ## Getting started
 
-Node 22 is required. The prerender step runs Node with type stripping.
+Node 22 or newer is required, and CI uses 22. The prerender step runs Node with type stripping.
 
 ```bash
 npm ci
@@ -32,11 +32,13 @@ npm test
 npm run build
 ```
 
+Run one test file with `npx vitest run src/lib/calc.test.ts`, or filter by name with `npx vitest run -t "name"`.
+
 `npm run dev` prints a local URL, usually http://localhost:5173.
 
 ## SEO
 
-`npm run build` prerenders `/`, `/savings`, `/stocks`, `/compare`, and `/goal` to static HTML. The build also writes `robots.txt`, `sitemap.xml`, `llms.txt`, and `llms-full.txt`, and the pages include `/og.png` plus JSON-LD (`WebApplication` and `FAQPage`).
+`npm run build` prerenders `/`, `/savings`, `/stocks`, `/compare`, and `/goal` to static HTML. The build also writes `sitemap.xml`, `llms.txt`, and `llms-full.txt`, copies `robots.txt` from `public/`, and the pages include `/og.png` plus JSON-LD (`WebApplication` and `FAQPage`).
 
 ## Production
 
@@ -54,8 +56,10 @@ A version tag `v*` runs the release workflow, which lints, typechecks, tests, bu
 
 ## More
 
-- [PLAN.md](PLAN.md) is the SEO and AI-search roadmap.
-- [docs/security-review-2026-10.md](docs/security-review-2026-10.md) is the October 2026 security review.
+- [PLAN.md](PLAN.md) is the SEO and AI-search roadmap, with what is done and what is still open.
+- [DESIGN-PLAN.md](DESIGN-PLAN.md) is the planned restyle to a Wise-inspired design system. It has not started.
+- [docs/security-review-2026-10.md](docs/security-review-2026-10.md) is the October 2026 security review. [SECURITY.md](SECURITY.md) says how to report a vulnerability.
+- [AGENTS.md](AGENTS.md) is the guide for coding agents. `CLAUDE.md` imports it.
 
 ## License
 
