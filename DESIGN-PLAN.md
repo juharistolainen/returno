@@ -478,7 +478,7 @@ Pass `stroke="var(--ink)"` (and the siblings). Recharts writes that onto the SVG
 
 - Grid: `stroke="var(--hairline)"`, vertical still off. The grid is decorative, not a series.
 - Tick fill: `var(--text-3)`, `fontSize` 12 (`--fs-caption`).
-- Single series keeps the area chart. Fill is flat, opacity 1, and follows the stroke: `var(--negative-pale)` under savings, `var(--positive-pale)` under stocks (Decision 8; originally `--primary-pale` under an ink stroke). Delete `fillOpacity={0.16}`. The pale step is a tint behind the ink line, not the accent base and not a thin mark.
+- Single series keeps the area chart. Fill is flat, opacity 1, and follows the stroke: `var(--negative-pale)` under savings, `var(--positive-pale)` under stocks (Decision 8; originally `--primary-pale` under an ink stroke). Delete `fillOpacity={0.16}`. The pale step is a tint behind the series line, not a thin mark.
 - Two or more series keep the line chart, no area.
 - `isAnimationActive={false}` stays, so the chart does not depend on the reduced-motion duration tokens.
 - Tooltip: white card, `--radius-md`, `--shadow-md`, ink text. Series names use the same tokens as the strokes. Set `cursor={false}` so the default grey cursor band does not introduce another colour.
