@@ -301,6 +301,9 @@ export function projectInvestment(input: InvestmentInput): Projection {
 
   const monthlyGrowth = Math.pow(1 + input.expectedReturn, 1 / MONTHS_PER_YEAR);
   const monthlyRetention = Math.pow(1 - input.feeRate, 1 / MONTHS_PER_YEAR);
+  if (!Number.isFinite(monthlyGrowth) || !Number.isFinite(monthlyRetention)) {
+    throw new Error("expectedReturn and feeRate must produce a finite monthly factor");
+  }
   let balance = input.balance;
   let totalContributions = input.balance;
   let totalFees = 0;

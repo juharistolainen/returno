@@ -308,6 +308,10 @@ describe("projectInvestment", () => {
     expect(withFee.totalGain).toBeLessThan(0);
   });
 
+  it("rejects a fund fee that is not below 100 percent", () => {
+    expect(() => projectInvestment(stocks({ feeRate: 1.5, years: 1 }))).toThrow(/finite monthly factor/);
+  });
+
   it("does not change the nominal balance when inflation is set", () => {
     const nominal = projectInvestment(
       stocks({
