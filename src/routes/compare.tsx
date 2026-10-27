@@ -1,4 +1,4 @@
-import { createRoute, useSearch } from "@tanstack/react-router";
+import { createRoute } from "@tanstack/react-router";
 import { GrowthChart } from "../components/GrowthChart.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
 import { SeoBlock } from "../components/SeoBlock.tsx";
@@ -8,9 +8,9 @@ import { YearTable } from "../components/YearTable.tsx";
 import { formatEur, formatSignedEur } from "../lib/format.ts";
 import { requirePage } from "../content/seo.ts";
 import { comparisonChart, projectComparison } from "../lib/project.ts";
-import { validateSearch } from "../lib/search.ts";
+import { calculatorSearch, validateSearch } from "../lib/search.ts";
 import { rootRoute } from "./root.tsx";
-import { useReplaceScenario } from "./scenario-page.tsx";
+import { useReplaceScenario, useShownScenario } from "./scenario-page.tsx";
 
 const compareSeo = requirePage("/compare");
 
@@ -18,6 +18,7 @@ export const compareRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/compare",
   validateSearch,
+  search: calculatorSearch,
   component: ComparePage,
 });
 
@@ -30,7 +31,7 @@ interface CompareRow {
 }
 
 function ComparePage() {
-  const scenario = useSearch({ from: compareRoute.id });
+  const scenario = useShownScenario();
   const update = useReplaceScenario(scenario);
   const comparison = projectComparison(scenario);
   const chart = comparisonChart(scenario, comparison);

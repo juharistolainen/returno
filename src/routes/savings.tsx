@@ -1,4 +1,4 @@
-import { createRoute, useSearch } from "@tanstack/react-router";
+import { createRoute } from "@tanstack/react-router";
 import { GrowthChart } from "../components/GrowthChart.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
 import { SeoBlock } from "../components/SeoBlock.tsx";
@@ -8,9 +8,9 @@ import { YearTable } from "../components/YearTable.tsx";
 import { formatEur } from "../lib/format.ts";
 import { requirePage } from "../content/seo.ts";
 import { projectSavingsScenario, savingsChart } from "../lib/project.ts";
-import { validateSearch } from "../lib/search.ts";
+import { calculatorSearch, validateSearch } from "../lib/search.ts";
 import { rootRoute } from "./root.tsx";
-import { useReplaceScenario } from "./scenario-page.tsx";
+import { useReplaceScenario, useShownScenario } from "./scenario-page.tsx";
 
 const savingsSeo = requirePage("/savings");
 
@@ -18,11 +18,12 @@ export const savingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/savings",
   validateSearch,
+  search: calculatorSearch,
   component: SavingsPage,
 });
 
 function SavingsPage() {
-  const scenario = useSearch({ from: savingsRoute.id });
+  const scenario = useShownScenario();
   const update = useReplaceScenario(scenario);
   const projection = projectSavingsScenario(scenario);
   const chart = savingsChart(scenario, projection).map((point) => ({

@@ -30,4 +30,16 @@ describe("seo pages", () => {
     }
     expect(sitemap).not.toContain("/nonexistent");
   });
+
+  it("keeps canonical and og:url on the bare path with no query", () => {
+    for (const page of seoPages) {
+      const url = canonicalUrl(page.path);
+      expect(url).toBe(page.path === "/" ? "https://returno.site/" : `https://returno.site${page.path}`);
+      expect(url).not.toContain("?");
+      const nodes = jsonLdGraph(page)["@graph"] as Array<Record<string, unknown>>;
+      for (const node of nodes) {
+        if ("url" in node) expect(node.url).toBe(url);
+      }
+    }
+  });
 });
