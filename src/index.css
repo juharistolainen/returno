@@ -14,15 +14,9 @@
   --color-line-soft: var(--hairline-soft); /* table rows */
   --color-muted: var(--text-3);            /* captions that carry meaning */
   --color-tint: var(--canvas-tint);        /* wells and the nav tray */
-  --color-savings: var(--primary-text);    /* interim, until later phases remove extra accent text */
-  --color-savings-soft: var(--primary-pale);
   --color-stocks: var(--negative-deep);    /* errors and negative amounts */
-  --color-stocks-soft: var(--negative-pale);
-  --color-real: var(--body);               /* third series, quiet */
   --color-body: var(--body);               /* long-form copy */
-  --color-on-fill: var(--on-primary);
   --color-positive: var(--positive-deep);
-  --color-positive-soft: var(--positive-pale);
   --color-mute-on-dark: var(--mute-on-dark); /* footer stamp, Phase 3 */
 }
 
