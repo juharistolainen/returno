@@ -481,8 +481,8 @@ Pass `stroke="var(--ink)"` (and the siblings). Recharts writes that onto the SVG
 - Single series keeps the area chart. Fill is flat, opacity 1, and follows the stroke: `var(--primary-pale)` under savings, `var(--positive-pale)` under stocks (Decision 8). Delete `fillOpacity={0.16}`. The pale step is a tint behind the series line, not a thin mark.
 - Two or more series keep the line chart, no area.
 - `isAnimationActive={false}` stays, so the chart does not depend on the reduced-motion duration tokens.
-- Tooltip: white card, `--radius-md`, `--shadow-md`, ink text. Each row has an 8px disc in the stroke token; the text stays ink (Decision 8). Set `cursor={false}` so the default grey cursor band does not introduce another colour.
-- Legend: the word plus an 8px disc (`size-2`, `--space-sm`). The word is the meaning. The disc uses the same token as the stroke.
+- Tooltip: white card, `--radius-md`, `--shadow-md`, ink text. Each row has the same line swatch as the legend; the text stays ink (Decision 8). Set `cursor={false}` so the default grey cursor band does not introduce another colour.
+- Legend and tooltip: the word plus a 24 × 8px swatch of the series line (same token, same `strokeDasharray`), so dashed series read as dashed. The word is the meaning. (Originally an 8px disc; changed after Decision 8 so the two dashed greys on the goal chart are told apart in the legend.)
 
 ---
 

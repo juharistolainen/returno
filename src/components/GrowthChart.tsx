@@ -99,7 +99,7 @@ export function GrowthChart({
       <ul className="body-sm mt-2 mb-0 flex flex-wrap gap-x-4 gap-y-1 p-0 text-muted">
         {series.map((item) => (
           <li key={item.dataKey} className="mb-0 flex items-center gap-2">
-            <span className="inline-block size-2 rounded-full" style={{ backgroundColor: item.color }} />
+            <SeriesSwatch series={item} />
             {item.label}
           </li>
         ))}
@@ -125,13 +125,19 @@ function ChartTooltip({
       <p className="body-sm-strong m-0 text-ink">Year {label}</p>
       {payload.map((entry) => (
         <p key={String(entry.dataKey)} className="m-0 flex items-center gap-2">
-          <span
-            className="inline-block size-2 rounded-full"
-            style={{ backgroundColor: series.find((item) => item.dataKey === entry.dataKey)?.color }}
-          />
+          <SeriesSwatch series={series.find((item) => item.dataKey === entry.dataKey)} />
           {entry.name}: {formatEur(Number(entry.value))}
         </p>
       ))}
     </div>
+  );
+}
+
+// A short stretch of the series line, so dashed series read as dashed in the legend and tooltip.
+function SeriesSwatch({ series }: { series: Series | undefined }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 8" className="h-2 w-6 shrink-0">
+      <line x1="0" y1="4" x2="24" y2="4" stroke={series?.color} strokeWidth={2.25} strokeDasharray={series?.dash} />
+    </svg>
   );
 }
