@@ -3,7 +3,7 @@
  * The shell's script and stylesheet stay, so the browser app still boots.
  * Crawlers that skip JavaScript see the headings and the formula copy.
  */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -16,12 +16,16 @@ import {
   seoPages,
   sitemapXml,
 } from "../src/content/seo.ts";
+import { buildStampText, formatBuildTime } from "../src/lib/build-stamp.ts";
 import { assertVerificationMeta } from "./verification-meta.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "dist");
 const shell = readFileSync(join(dist, "index.html"), "utf8");
 assertVerificationMeta(shell, "vite shell");
+const buildMetaPath = join(dist, "build-meta.json");
+const buildMeta = JSON.parse(readFileSync(buildMetaPath, "utf8"));
+const buildStamp = renderBuildStamp(buildMeta);
 const lastmod = new Date().toISOString().slice(0, 10);
 const image = `${SITE_ORIGIN}${OG_IMAGE_PATH}`;
 
@@ -32,7 +36,7 @@ for (const page of seoPages) {
     robots: "index, follow",
     canonical: canonicalUrl(page.path),
     jsonLd: jsonLdGraph(page),
-    body: renderPage(page),
+    body: `${renderPage(page)}${buildStamp}`,
   });
   const file = page.path === "/" ? join(dist, "index.html") : join(dist, page.path.slice(1), "index.html");
   mkdirSync(dirname(file), { recursive: true });
@@ -46,7 +50,7 @@ const notFoundHtml = renderDocument(shell, {
   robots: "noindex",
   canonical: null,
   jsonLd: null,
-  body: `<main><h1>That page is not here</h1><p>The calculators live on Savings, Stocks, Compare, and Goal.</p><p><a href="/">Back to Returno</a></p></main>`,
+  body: `<main><h1>That page is not here</h1><p>The calculators live on Savings, Stocks, Compare, and Goal.</p><p><a href="/">Back to Returno</a></p></main>${buildStamp}`,
 });
 assertVerificationMeta(notFoundHtml, "/404.html");
 writeFileSync(join(dist, "404.html"), notFoundHtml);
@@ -56,7 +60,16 @@ writeFileSync(join(dist, "sitemap.xml"), sitemapXml(lastmod));
 writeFileSync(join(dist, "llms.txt"), llmsTxt());
 writeFileSync(join(dist, "llms-full.txt"), llmsFullTxt());
 
+unlinkSync(buildMetaPath);
 console.log(`Prerendered ${seoPages.map((page) => page.path).join(", ")}`);
+
+function renderBuildStamp(meta) {
+  const label = formatBuildTime(meta.time);
+  if (buildStampText(meta.version, meta.time) !== `v${meta.version} · built ${label}`) {
+    throw new Error("Build stamp text drifted from the shared formatter");
+  }
+  return `<footer><p class="shrink-0 text-right text-xs whitespace-nowrap text-muted">v${escapeText(meta.version)} · built <time datetime="${escapeAttr(meta.time)}">${escapeText(label)}</time></p></footer>`;
+}
 
 function renderDocument(template, page) {
   let html = template.replace(/<title>[\s\S]*?<\/title>/, `<title>${escapeText(page.title)}</title>`);
