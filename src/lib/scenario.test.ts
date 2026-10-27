@@ -37,11 +37,19 @@ describe("parseScenario", () => {
       compounding: "hourly",
       taxEnabled: "yes",
       inflationEnabled: "false",
+      targetKind: "profit",
+      vehicle: "crypto",
+      horizonMode: "soon",
+      targetDate: "2026-13-40",
     });
     expect(scenario.contributionFrequency).toBe(defaultScenario.contributionFrequency);
     expect(scenario.compounding).toBe(defaultScenario.compounding);
     expect(scenario.taxEnabled).toBe(false);
     expect(scenario.inflationEnabled).toBe(false);
+    expect(scenario.targetKind).toBe(defaultScenario.targetKind);
+    expect(scenario.vehicle).toBe("savings");
+    expect(scenario.horizonMode).toBe("years");
+    expect(scenario.targetDate).toBe(defaultScenario.targetDate);
   });
 
   it("reads boolean flags from strings", () => {

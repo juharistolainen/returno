@@ -1,4 +1,7 @@
 import type { CompoundingFrequency, ContributionFrequency } from "./calc.ts";
+import type { GoalTargetKind, GoalVehicle } from "./goal.ts";
+
+export type HorizonMode = "years" | "date";
 
 export interface Scenario {
   balance: number;
@@ -13,6 +16,11 @@ export interface Scenario {
   fee: number;
   inflationEnabled: boolean;
   inflationRate: number;
+  targetAmount: number;
+  targetKind: GoalTargetKind;
+  horizonMode: HorizonMode;
+  targetDate: string;
+  vehicle: GoalVehicle;
 }
 
 export const defaultScenario: Scenario = {
@@ -28,9 +36,17 @@ export const defaultScenario: Scenario = {
   fee: 0.25,
   inflationEnabled: false,
   inflationRate: 2,
+  targetAmount: 100_000,
+  targetKind: "balance",
+  horizonMode: "years",
+  targetDate: "2036-12-31",
+  vehicle: "savings",
 };
 
 const CONTRIBUTION_FREQUENCIES: readonly ContributionFrequency[] = ["monthly", "yearly"];
+const TARGET_KINDS: readonly GoalTargetKind[] = ["balance", "growth"];
+const HORIZON_MODES: readonly HorizonMode[] = ["years", "date"];
+const VEHICLES: readonly GoalVehicle[] = ["savings", "stocks"];
 const COMPOUNDING_FREQUENCIES: readonly CompoundingFrequency[] = [
   "annually",
   "semiannually",
@@ -76,7 +92,20 @@ export function parseScenario(search: Record<string, unknown>): Scenario {
     fee: readNumber(search.fee, defaults.fee, 0, 20),
     inflationEnabled: readBoolean(search.inflationEnabled, defaults.inflationEnabled),
     inflationRate: readNumber(search.inflationRate, defaults.inflationRate, 0, 50),
+    targetAmount: readNumber(search.targetAmount, defaults.targetAmount, 0, 1_000_000_000_000),
+    targetKind: readEnum(search.targetKind, TARGET_KINDS, defaults.targetKind),
+    horizonMode: readEnum(search.horizonMode, HORIZON_MODES, defaults.horizonMode),
+    targetDate: readDate(search.targetDate, defaults.targetDate),
+    vehicle: readEnum(search.vehicle, VEHICLES, defaults.vehicle),
   };
+}
+
+function readDate(value: unknown, fallback: string): string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return fallback;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year!, month! - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month! - 1 || date.getDate() !== day) return fallback;
+  return value;
 }
 
 export function scenarioEqual(left: Scenario, right: Scenario): boolean {
@@ -116,7 +145,8 @@ export type NumericScenarioKey =
   | "taxRate"
   | "expectedReturn"
   | "fee"
-  | "inflationRate";
+  | "inflationRate"
+  | "targetAmount";
 
 export const numericFieldLimits: Record<NumericScenarioKey, { min: number; max: number; integer?: boolean }> = {
   balance: { min: 0, max: 1_000_000_000_000 },
@@ -127,6 +157,7 @@ export const numericFieldLimits: Record<NumericScenarioKey, { min: number; max: 
   expectedReturn: { min: 0, max: 100 },
   fee: { min: 0, max: 20 },
   inflationRate: { min: 0, max: 50 },
+  targetAmount: { min: 0, max: 1_000_000_000_000 },
 };
 
 export interface ScenarioFormValues {
@@ -142,6 +173,11 @@ export interface ScenarioFormValues {
   fee: string;
   inflationEnabled: boolean;
   inflationRate: string;
+  targetAmount: string;
+  targetKind: GoalTargetKind;
+  horizonMode: HorizonMode;
+  targetDate: string;
+  vehicle: GoalVehicle;
 }
 
 export function scenarioToFormValues(scenario: Scenario): ScenarioFormValues {
@@ -158,6 +194,11 @@ export function scenarioToFormValues(scenario: Scenario): ScenarioFormValues {
     fee: String(scenario.fee),
     inflationEnabled: scenario.inflationEnabled,
     inflationRate: String(scenario.inflationRate),
+    targetAmount: String(scenario.targetAmount),
+    targetKind: scenario.targetKind,
+    horizonMode: scenario.horizonMode,
+    targetDate: scenario.targetDate,
+    vehicle: scenario.vehicle,
   };
 }
 
@@ -194,6 +235,11 @@ export function scenarioFromForm(values: ScenarioFormValues): Scenario | null {
     fee: numeric.fee,
     inflationEnabled: values.inflationEnabled,
     inflationRate: numeric.inflationRate,
+    targetAmount: numeric.targetAmount,
+    targetKind: values.targetKind,
+    horizonMode: values.horizonMode,
+    targetDate: values.targetDate,
+    vehicle: values.vehicle,
   };
 }
 
