@@ -23,22 +23,22 @@ export function RootLayout() {
         Skip to content
       </a>
       <header className="border-b border-line bg-card">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link to="/" className="flex items-center gap-3 rounded-lg">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <Link to="/" className="flex items-center gap-3 rounded-lg text-ink no-underline">
             <Mark />
             <span>
-              <span className="block font-display text-[1.7rem] leading-none tracking-tight">Returno</span>
-              <span className="mt-1 block text-sm text-muted">Expected returns, in euros</span>
+              <span className="display-xs block">Returno</span>
+              <span className="body-sm mt-1 block text-muted">Expected returns, in euros</span>
             </span>
           </Link>
           <div className="flex flex-col gap-3 sm:items-end">
-            <nav aria-label="Calculators" className="grid grid-cols-2 gap-1 rounded-2xl bg-tint p-1 text-sm font-medium sm:grid-cols-4 sm:rounded-full sm:gap-0">
+            <nav aria-label="Calculators" className="grid grid-cols-2 gap-1 rounded-2xl border border-line bg-tint p-2 sm:grid-cols-4">
               {views.map((view) => (
                 <Link
                   key={view.to}
                   to={view.to}
                   search={scenarioToSearch(scenario) as Scenario}
-                  className="rounded-full px-3 py-1.5 text-center text-muted aria-[current=page]:bg-card aria-[current=page]:text-ink aria-[current=page]:shadow-sm"
+                  className="body-sm-strong flex min-h-[var(--control-md)] items-center justify-center rounded-xl px-4 text-center text-muted no-underline aria-[current=page]:bg-card aria-[current=page]:text-ink"
                 >
                   {view.label}
                 </Link>
@@ -48,13 +48,13 @@ export function RootLayout() {
           </div>
         </div>
       </header>
-      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
         <PersistScenario />
         <Outlet />
       </main>
-      <footer className="border-t border-line px-4 py-6 text-sm text-muted">
+      <footer className="wds-band wds-band--dark px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <p className="max-w-3xl">
+          <p className="body-sm max-w-3xl">
             Estimates only, not financial advice. Returno does not know future rates, returns, fees, tax, or inflation.
             A constant rate is a sketch, not a forecast.
           </p>
@@ -78,13 +78,13 @@ export function NotFound() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-lg rounded-2xl border border-line bg-card px-6 py-10">
-      <h1 className="font-display text-3xl">That page is not here</h1>
+    <div className="wds-card mx-auto max-w-lg">
+      <h1 className="display-sm">That page is not here</h1>
       <p className="mt-2 text-muted">The calculators live on Savings, Stocks, Compare, and Goal.</p>
       <Link
         to="/savings"
         search={scenarioToSearch(defaultScenario) as Scenario}
-        className="mt-6 inline-block font-medium text-savings underline underline-offset-4"
+        className="wds-btn wds-btn--text mt-6"
       >
         Open the savings calculator
       </Link>
@@ -157,12 +157,8 @@ function CopyLinkButton() {
       <button
         type="button"
         aria-live="polite"
-        className={`self-start rounded-full border px-3 py-1 text-sm font-medium sm:self-end ${
-          status === "copied"
-            ? "border-savings bg-savings text-white"
-            : status === "failed"
-              ? "border-stocks bg-stocks-soft text-stocks"
-              : "border-line bg-card text-savings"
+        className={`wds-btn self-start sm:self-end ${
+          status === "copied" ? "copy-btn--copied" : status === "failed" ? "copy-btn--failed" : "wds-btn--secondary"
         }`}
         onClick={() => copyLink()}
         onMouseDown={(event) => {
@@ -174,7 +170,7 @@ function CopyLinkButton() {
       {status !== "idle" ? (
         <p
           role="status"
-          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm text-white shadow-lg"
+          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-sm text-paper shadow-md"
         >
           {status === "copied" ? "Link copied" : "Could not copy link"}
         </p>
@@ -207,10 +203,10 @@ function copyWithTextarea(url: string): boolean {
 function Mark() {
   return (
     <svg aria-hidden="true" viewBox="0 0 32 32" className="size-10 shrink-0">
-      <rect width="32" height="32" rx="8" fill="#0f6e62" />
-      <path d="M7 22.5h18" stroke="#f4f0e7" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M8 19.5 13 15l4 3 7-8" stroke="#fffdf8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="24" cy="10" r="1.7" fill="#f3c7a6" />
+      <rect width="32" height="32" rx="8" fill="var(--primary)" />
+      <path d="M7 22.5h18" stroke="var(--on-primary)" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M8 19.5 13 15l4 3 7-8" stroke="var(--on-primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="24" cy="10" r="1.7" fill="var(--on-primary)" />
     </svg>
   );
 }

@@ -68,7 +68,7 @@ function renderBuildStamp(meta) {
   if (buildStampText(meta.version, meta.time) !== `v${meta.version} · built ${label}`) {
     throw new Error("Build stamp text drifted from the shared formatter");
   }
-  return `<footer><p class="shrink-0 text-right text-xs whitespace-nowrap text-muted">v${escapeText(meta.version)} · built <time datetime="${escapeAttr(meta.time)}">${escapeText(label)}</time></p></footer>`;
+  return `<footer class="wds-band wds-band--dark px-6 py-6"><p class="caption shrink-0 text-right text-xs whitespace-nowrap text-mute-on-dark">v${escapeText(meta.version)} · built <time datetime="${escapeAttr(meta.time)}">${escapeText(label)}</time></p></footer>`;
 }
 
 function renderDocument(template, page) {
