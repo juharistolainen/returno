@@ -78,10 +78,10 @@ Copy for a page therefore lives in two places: the React route component and `sr
 - Commit subjects are plain sentences in the imperative, with no prefix (`Show the version and build time in the footer`). The body explains why.
 - A version bump is its own commit, `Bump version to x.y.z`, touching only `package.json` and `package-lock.json`. The version shows in the footer.
 - Docs and UI copy use short, plain sentences, sentence case, and no emoji. Figures are estimates, not financial advice. Keep that disclaimer wherever it appears.
-- When a change finishes an item in `PLAN.md`, `DESIGN-PLAN.md`, or the security review, update that document in the same PR.
+- When a change finishes an item in `PLAN.md` or `DESIGN-PLAN.md`, update that document in the same PR.
 
 ## Planning docs
 
 - `PLAN.md`: the SEO and AI-search roadmap. Done items carry PR links, and there is a status summary at the top.
 - `DESIGN-PLAN.md`: a phased retrofit to a Wise-inspired design system (cyan accent, Figtree, `@theme` tokens). The decisions are closed and no phase has started. Read it before any styling work. A design PR must not change `src/lib/`, the copy in `src/content/`, URLs, search params, or `contentSecurityPolicy`, and must not edit `public/favicon.svg`, `public/og.png`, or `scripts/og-image.mjs`.
-- `docs/security-review-2026-10.md`: the October 2026 security review and current security state. `SECURITY.md` is the reporting policy.
+- `SECURITY.md`: the security reporting policy.
