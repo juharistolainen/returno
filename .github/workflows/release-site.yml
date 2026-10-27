@@ -3,7 +3,8 @@ name: Release static site
 on:
   push:
     tags:
-      - "v*"
+      # Version tags only. GitHub tag filters are globs, not regular expressions.
+      - "v[0-9]*.[0-9]*.[0-9]*"
 
 permissions:
   contents: write
@@ -13,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
@@ -31,7 +32,7 @@ jobs:
         run: npm run package:site
 
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: returno-*.zip
           overwrite_files: true
@@ -39,8 +40,8 @@ jobs:
           body: |
             Static website build served from the site root (`/`).
 
-            Download `returno-<version>.zip` and upload it to a static host. On Cloudflare Pages, create a project, choose **Upload assets**, and upload the zip. Do not put the files in an extra folder. `_redirects` sends `/savings`, `/stocks`, and `/compare` to the app.
+            Download `returno-<version>.zip` and upload it to a static host. On Cloudflare Pages, create a project, choose **Upload assets**, and upload the zip. Do not put the files in an extra folder. `_redirects` sends `/savings`, `/stocks`, `/compare`, and `/goal` to the app.
 
-            This is not the GitHub Pages build. That build uses the `/returno/` base path and is published by the Pages workflow.
+            This is the root-path build. It is not a GitHub Pages deploy.
 
             Estimates only, not financial advice.

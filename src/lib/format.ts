@@ -39,6 +39,13 @@ export function formatPercent(value: number): string {
   return `${percent.format(value)} %`;
 }
 
+/** Axis label for a year count. Whole years stay integers; fractions use one decimal. */
+export function formatChartYear(year: number): string {
+  if (!Number.isFinite(year)) return "";
+  const rounded = Math.round(year * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
 export function formatSignedEur(value: number): string {
   const formatted = formatEur(Math.abs(value));
   if (value > 0) return `+${formatted}`;

@@ -192,6 +192,55 @@ describe("planGoal", () => {
     const plan = planGoal(savingsGoal({ months: -3, balance: 100, targetAmount: 500 }));
     expect(plan.status).toBe("unreachable");
     expect(plan.months).toBe(0);
+    expect(plan.message).toMatch(/past/);
+  });
+
+  it("does not describe a date later this month as already past", () => {
+    const plan = planGoal(savingsGoal({ months: 0, balance: 100, targetAmount: 500 }));
+    expect(plan.status).toBe("unreachable");
+    expect(plan.message).toMatch(/less than a month/);
+  });
+
+  it("refuses a horizon longer than 80 years instead of silently shortening it", () => {
+    const plan = planGoal(savingsGoal({ months: 81 * 12, targetAmount: 1_000 }));
+    expect(plan.status).toBe("unreachable");
+    expect(plan.months).toBe(0);
+    expect(plan.projection.rows).toEqual([]);
+  });
+
+  it("does not return NaN when the fund fee is not a real rate", () => {
+    const plan = planGoal(
+      savingsGoal({ vehicle: "stocks", feeRate: 1.5, expectedReturn: 0.07, targetAmount: 50_000, months: 24 }),
+    );
+    expect(plan.status).toBe("unreachable");
+    expect(plan.monthlyContribution).toBe(0);
+    expect(Number.isFinite(plan.projection.finalBalance)).toBe(true);
+  });
+});
+
+describe("closed form across a spread of rates", () => {
+  it("stays aligned with the forward simulation", () => {
+    const rates = [0, 0.01, 0.025, 0.07, 0.12];
+    const balances = [0, 1_000, 25_000];
+    const monthlies = [0, 50, 400];
+    for (const annualRate of rates) {
+      for (const balance of balances) {
+        for (const monthly of monthlies) {
+          const growth = savingsLinearGrowth(10 * 12, annualRate, "quarterly", annualRate === 0 ? 0 : 0.3);
+          const projected = projectSavings({
+            balance,
+            contribution: monthly,
+            contributionFrequency: "monthly",
+            annualRate,
+            compounding: "quarterly",
+            years: 10,
+            taxRate: annualRate === 0 ? 0 : 0.3,
+          });
+          expectMoney(growth.alpha * balance + growth.beta * monthly, projected.finalBalance, 0.05);
+          expect(Number.isFinite(projected.finalBalance)).toBe(true);
+        }
+      }
+    }
   });
 });
 
