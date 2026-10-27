@@ -1,21 +1,12 @@
-import { createRoute, createRouter, redirect } from "@tanstack/react-router";
-import { validateSearch } from "./lib/search.ts";
+import { createRouter } from "@tanstack/react-router";
 import { compareRoute } from "./routes/compare.tsx";
 import { goalRoute } from "./routes/goal.tsx";
+import { homeRoute } from "./routes/home.tsx";
 import { rootRoute } from "./routes/root.tsx";
 import { savingsRoute } from "./routes/savings.tsx";
 import { stocksRoute } from "./routes/stocks.tsx";
 
-const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/",
-  validateSearch,
-  beforeLoad: ({ search }) => {
-    throw redirect({ to: "/savings", search });
-  },
-});
-
-const routeTree = rootRoute.addChildren([indexRoute, savingsRoute, stocksRoute, compareRoute, goalRoute]);
+const routeTree = rootRoute.addChildren([homeRoute, savingsRoute, stocksRoute, compareRoute, goalRoute]);
 
 function routerBasepath(): string | undefined {
   const base = import.meta.env.BASE_URL;

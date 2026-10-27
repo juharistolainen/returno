@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate, useRouterState } from "@tanstack/react-router";
 import { isCalculatorPath } from "../lib/paths.ts";
 import { defaultScenario, parseScenario, type Scenario } from "../lib/scenario.ts";
-import { writeStoredScenario } from "../lib/storage.ts";
+import { readStoredScenario, writeStoredScenario } from "../lib/storage.ts";
 
 const views = [
   { to: "/savings", label: "Savings" },
@@ -23,7 +23,7 @@ export function RootLayout() {
       </a>
       <header className="border-b border-line/80 bg-card/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link to="/savings" search={scenario} className="flex items-center gap-3 rounded-lg">
+          <Link to="/" className="flex items-center gap-3 rounded-lg">
             <Mark />
             <span>
               <span className="block font-display text-[1.7rem] leading-none tracking-tight">Returno</span>
@@ -62,6 +62,17 @@ export function RootLayout() {
 }
 
 export function NotFound() {
+  useEffect(() => {
+    document.title = "Page not found — Returno";
+    let meta = document.head.querySelector('meta[name="robots"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "robots");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", "noindex");
+  }, []);
+
   return (
     <div className="mx-auto max-w-lg rounded-2xl border border-line bg-card px-6 py-10">
       <h1 className="font-display text-3xl">That page is not here</h1>
@@ -81,7 +92,9 @@ function useLeafScenario(): Scenario {
   const search = useRouterState({
     select: (state) => state.matches[state.matches.length - 1]?.search,
   });
-  return parseScenario(isRecord(search) ? search : {});
+  const record = isRecord(search) ? search : {};
+  if (Object.keys(record).length === 0) return readStoredScenario() ?? defaultScenario;
+  return parseScenario(record);
 }
 
 function PersistScenario() {

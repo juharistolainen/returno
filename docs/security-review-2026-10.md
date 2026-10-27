@@ -134,18 +134,21 @@ A shared link can still set any in-range scenario. That is the feature. It canno
 
 #### I2. Content-Security-Policy is not set in this repo
 
-The Worker that serves the files is not in this repository. The static zip only ships `_redirects` (`/* /index.html 200`), which is what makes `/goal` and the other client routes work. A catch-all also means a missing asset can be returned as `index.html` with status 200. `X-Content-Type-Options: nosniff` stops a browser from treating that HTML as a script.
-
-Suggested response headers on the Worker, after a trial against the real bundle:
+**Status:** done on the generated Worker (`scripts/build-worker.mjs`). Every response, including 301, 404, and 405, sends:
 
 ```
-Content-Security-Policy: default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'none'
+Content-Security-Policy: default-src 'self'; script-src 'self' <sha256 of each JSON-LD block>; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests
+Strict-Transport-Security: max-age=31536000; includeSubDomains
 X-Content-Type-Options: nosniff
-Referrer-Policy: no-referrer
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+Cross-Origin-Opener-Policy: same-origin
 X-Frame-Options: DENY
 ```
 
-`'unsafe-inline'` for styles is the awkward part. Recharts and React set `style` attributes. `style-src 'self'` without `'unsafe-inline'` will strip those and break the charts. Do not add this header until it has been checked on the Worker. A `_headers` file would help Cloudflare Pages, but a custom Worker will ignore it unless the Worker code reads it.
+`script-src` does not use `'unsafe-inline'`. The prerendered `application/ld+json` blocks are allowed by hash. The same hashes cover the copy React inserts, including after a client-side route change, because every page's hash is on every response. `style-src` keeps `'unsafe-inline'` because Recharts and React set `style` attributes, and a hash cannot allow those. Checked in Chrome against the built worker: `/savings` rendered the final balance and the chart SVG, both JSON-LD scripts matched a hash already in the policy, and Chrome reported no Content-Security-Policy refusal.
+
+The Pages zip still has `_redirects` (`/* /index.html 200`). That file does not set these headers. The Worker does.
 
 #### I3. GitHub Pages workflow is present and disabled
 
@@ -184,4 +187,3 @@ No tokens, private keys, or `.env` files are in the tree. `git` history for the 
 ## Left for Juha
 
 - Turn on tag protection so only maintainers can push or move `v*` tags.
-- Add the response headers above on the Worker, and test the CSP against the charts before enforcing it.

@@ -22,3 +22,6 @@ node_modules/.tmp
 
 # Packaged static site (published as a GitHub release asset)
 returno-*.zip
+
+# Self-contained Cloudflare Worker emitted by npm run build:worker
+/worker.mjs

@@ -1,14 +1,18 @@
 import { createRoute, useSearch } from "@tanstack/react-router";
 import { GrowthChart } from "../components/GrowthChart.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
+import { SeoBlock } from "../components/SeoBlock.tsx";
 import { ScenarioForm } from "../components/ScenarioForm.tsx";
 import { Summary } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
 import { formatEur, formatSignedEur } from "../lib/format.ts";
+import { requirePage } from "../content/seo.ts";
 import { comparisonChart, projectComparison } from "../lib/project.ts";
 import { validateSearch } from "../lib/search.ts";
 import { rootRoute } from "./root.tsx";
 import { useReplaceScenario } from "./scenario-page.tsx";
+
+const compareSeo = requirePage("/compare");
 
 export const compareRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -104,6 +108,7 @@ function ComparePage() {
           ]}
         />
       </div>
+      <SeoBlock page={compareSeo} />
     </>
   );
 }

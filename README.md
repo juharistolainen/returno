@@ -6,6 +6,7 @@ The figures are estimates, not financial advice. Returno assumes the rate you ty
 
 ## Calculators
 
+- **Home** (`/`) names the four calculators and links to them.
 - **Savings** (`/savings`) compounds a balance with regular top-ups, a nominal annual rate, and a compounding frequency. Tax on interest is optional. The default rate of 30% matches the lower Finnish capital-income tax rate; the higher bracket is not modeled.
 - **Stocks** (`/stocks`) uses an expected yearly return and an annual fund fee. Inflation is optional and only restates the result in today's euros.
 - **Compare** (`/compare`) runs both with the same balance, top-up, and horizon, then shows both lines and the gap at the end.
@@ -39,13 +40,23 @@ npm run build
 
 The GitHub Pages workflow has been removed. Returno is published from the release zip (and, in production, from the Cloudflare Worker), not from `github.io`.
 
-`npm run build:pages` still builds with Vite base path `/returno/` and copies `index.html` to `404.html`, which is the old project-site fallback. `npm run build` keeps the base path at `/`.
+`npm run build:pages` still builds with Vite base path `/returno/` and copies `index.html` to `404.html`, which is the old project-site fallback. `npm run build` keeps the base path at `/`. It also prerenders `/`, `/savings`, `/stocks`, `/compare`, and `/goal` to static HTML, and writes `sitemap.xml`, `llms.txt`, and `llms-full.txt` into `dist/`.
+
+## Production worker
+
+returno.site is served by one self-contained Cloudflare Worker. There is no Wrangler assets binding. Build the site, then bundle `dist/` into `worker.mjs`:
+
+```bash
+npm run build && npm run build:worker
+```
+
+`worker.mjs` is generated and is not committed. Deploy that file as the Worker script. It serves each route from its prerendered `index.html`, redirects a trailing slash to the bare path, redirects any host other than `returno.site` (except `*.workers.dev`) to `https://returno.site`, adds `X-Robots-Tag: noindex` on `workers.dev`, returns 404 for an unknown path, and returns 405 for anything other than GET or HEAD. Every response also sends HSTS, framing and referrer restrictions, and a Content-Security-Policy that allows the JSON-LD blocks by hash. Inline styles stay allowed because the charts set `style` attributes.
 
 ## Static upload (Cloudflare Pages and similar)
 
 GitHub release assets include `returno-<version>.zip`. That archive is the root-path production build: `index.html` is at the top of the zip, not inside a folder. It is the build to drop into Cloudflare Pages, Netlify, or any host that serves the site from `/`. It is not the GitHub Pages artifact, which uses the `/returno/` base path.
 
-On Cloudflare Pages, create a project, choose **Upload assets**, and upload the zip. The archive contains `_redirects`, so `/savings`, `/stocks`, and `/compare` load the app. `404.html` is included for hosts that use a 404 page as the single-page fallback.
+On Cloudflare Pages, create a project, choose **Upload assets**, and upload the zip. The archive contains `_redirects` (`/* /index.html 200`), so unknown paths still return 200 on a Pages upload. The Worker above is what returns a real 404. `404.html` in the root-path build is a noindex not-found page.
 
 To build the same zip locally:
 
