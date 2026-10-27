@@ -57,7 +57,7 @@ export function YearTable<T extends { year: number }>({
           </thead>
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b border-line/70 last:border-0">
+              <tr key={row.id} className="border-b border-line last:border-0">
                 {row.getAllCells().map((cell) => (
                   <td key={cell.id} className={`px-4 py-2 tabular-nums ${alignClass(alignById.get(cell.column.id))}`}>
                     <table.FlexRender cell={cell} />

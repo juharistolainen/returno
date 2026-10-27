@@ -22,7 +22,7 @@ export function RootLayout() {
       >
         Skip to content
       </a>
-      <header className="border-b border-line/80 bg-card/85 backdrop-blur">
+      <header className="border-b border-line bg-card">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <Link to="/" className="flex items-center gap-3 rounded-lg">
             <Mark />
@@ -32,7 +32,7 @@ export function RootLayout() {
             </span>
           </Link>
           <div className="flex flex-col gap-3 sm:items-end">
-            <nav aria-label="Calculators" className="grid grid-cols-2 gap-1 rounded-2xl bg-[#efe7da] p-1 text-sm font-medium sm:grid-cols-4 sm:rounded-full sm:gap-0">
+            <nav aria-label="Calculators" className="grid grid-cols-2 gap-1 rounded-2xl bg-tint p-1 text-sm font-medium sm:grid-cols-4 sm:rounded-full sm:gap-0">
               {views.map((view) => (
                 <Link
                   key={view.to}
@@ -52,7 +52,7 @@ export function RootLayout() {
         <PersistScenario />
         <Outlet />
       </main>
-      <footer className="border-t border-line/80 px-4 py-6 text-sm text-muted">
+      <footer className="border-t border-line px-4 py-6 text-sm text-muted">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <p className="max-w-3xl">
             Estimates only, not financial advice. Returno does not know future rates, returns, fees, tax, or inflation.

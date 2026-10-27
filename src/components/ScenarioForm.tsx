@@ -104,7 +104,7 @@ export function ScenarioForm({
         </Fieldset>
       ) : null}
 
-      <details className={`rounded-xl bg-[#f7f2e9] px-3 py-2 text-sm text-muted ${mode === "compare" ? "lg:col-span-3" : ""}`}>
+      <details className={`rounded-xl bg-tint px-3 py-2 text-sm text-muted ${mode === "compare" ? "lg:col-span-3" : ""}`}>
         <summary className="cursor-pointer font-medium text-ink">How the numbers are built</summary>
         <div className="mt-2 space-y-2">
           {mode !== "stocks" ? (

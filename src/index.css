@@ -4,17 +4,22 @@
 @theme {
   --font-sans: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* Colours stay on the current hexes until Phase 2. */
-  --color-paper: #f4f0e7;
-  --color-ink: #1c1814;
-  --color-card: #fffdf8;
-  --color-line: #e4d9c8;
-  --color-muted: #5e564c;
-  --color-savings: #0f6e62;
-  --color-savings-soft: #e6f3f0;
-  --color-stocks: #b4532a;
-  --color-stocks-soft: #fde8dc;
-  --color-real: #35557a;
+
+  --color-paper: var(--canvas-soft);       /* page */
+  --color-ink: var(--ink);
+  --color-card: var(--canvas);             /* cards, inputs, nav */
+  --color-line: var(--hairline);           /* decorative dividers */
+  --color-muted: var(--text-3);            /* captions that carry meaning */
+  --color-tint: var(--canvas-tint);        /* wells and the nav tray */
+  --color-savings: var(--primary-text);    /* interim, until later phases remove extra accent text */
+  --color-savings-soft: var(--primary-pale);
+  --color-stocks: var(--negative-deep);    /* errors and negative amounts */
+  --color-stocks-soft: var(--negative-pale);
+  --color-real: var(--body);               /* third series, quiet */
+  --color-on-fill: var(--on-primary);
+  --color-positive: var(--positive-deep);
+  --color-positive-soft: var(--positive-pale);
+  --color-mute-on-dark: var(--mute-on-dark); /* footer stamp, Phase 3 */
 }
 
 /*
@@ -34,10 +39,7 @@ body {
   min-height: 100vh;
   font-family: var(--font-sans);
   color: var(--color-ink);
-  background:
-    radial-gradient(1000px 420px at 0% -10%, #fff9f0, transparent 55%),
-    radial-gradient(800px 380px at 100% 0%, #e8f4f1, transparent 50%),
-    var(--color-paper);
+  background: var(--color-paper);
 }
 
 #root {
@@ -45,6 +47,6 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-savings);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
