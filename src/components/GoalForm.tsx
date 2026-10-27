@@ -56,8 +56,8 @@ export function GoalForm({
     >
       <fieldset className="flex flex-col gap-4">
         <legend>
-          <span className="block font-display text-xl">The goal</span>
-          <span className="block text-sm text-muted">What you want, and whether that number is the balance or the growth.</span>
+          <span className="display-xs block">The goal</span>
+          <span className="body-sm block text-muted">What you want, and whether that number is the balance or the growth.</span>
         </legend>
         <NumberField form={form} name="targetAmount" label="Target amount" suffix="EUR" />
         <ChoiceField
@@ -96,8 +96,8 @@ export function GoalForm({
 
       <fieldset className="flex flex-col gap-4">
         <legend>
-          <span className="block font-display text-xl">Where it grows</span>
-          <span className="block text-sm text-muted">The monthly amount is solved net of tax and fees.</span>
+          <span className="display-xs block">Where it grows</span>
+          <span className="body-sm block text-muted">The monthly amount is solved net of tax and fees.</span>
         </legend>
         <ChoiceField
           form={form}
@@ -175,28 +175,28 @@ function NumberField({
       {(field) => {
         const error = typeof field.state.meta.errors[0] === "string" ? field.state.meta.errors[0] : undefined;
         return (
-          <div>
-            <label htmlFor={id} className="block text-sm font-medium">
+          <div className="wds-field">
+            <label htmlFor={id} className="wds-eyebrow eyebrow">
               {label}
             </label>
-            <div className={`mt-1 flex items-center rounded-xl border bg-white ${error ? "border-stocks" : "border-line"}`}>
+            <div className={`field-with-suffix${error ? " wds-field--error" : ""}`}>
               <input
                 id={id}
                 name={field.name}
                 inputMode={name === "years" ? "numeric" : "decimal"}
                 autoComplete="off"
                 spellCheck={false}
-                className="min-w-0 flex-1 bg-transparent px-3 py-2 tabular-nums outline-none"
+                className="wds-field__input tabular-nums"
                 value={field.state.value}
                 aria-invalid={error ? true : undefined}
                 aria-describedby={hint || error ? `${id}-hint` : undefined}
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
               />
-              <span className="pr-3 text-sm text-muted">{suffix}</span>
+              <span className="body-sm">{suffix}</span>
             </div>
             {hint || error ? (
-              <p id={`${id}-hint`} className={`mt-1 text-sm ${error ? "text-stocks" : "text-muted"}`}>
+              <p id={`${id}-hint`} className={`body-sm mb-0 ${error ? "text-stocks" : "text-muted"}`}>
                 {error ?? hint}
               </p>
             ) : null}
@@ -221,8 +221,8 @@ function DateField({ form, today }: { form: GoalFormApi; today: Date }) {
       {(field) => {
         const error = typeof field.state.meta.errors[0] === "string" ? field.state.meta.errors[0] : undefined;
         return (
-          <div>
-            <label htmlFor={id} className="block text-sm font-medium">
+          <div className={`wds-field${error ? " wds-field--error" : ""}`}>
+            <label htmlFor={id} className="wds-eyebrow eyebrow">
               Target date
             </label>
             <input
@@ -231,14 +231,14 @@ function DateField({ form, today }: { form: GoalFormApi; today: Date }) {
               type="date"
               min={min}
               max={max}
-              className={`mt-1 w-full rounded-xl border bg-white px-3 py-2 ${error ? "border-stocks" : "border-line"}`}
+              className="wds-field__input"
               value={field.state.value}
               aria-invalid={error ? true : undefined}
               aria-describedby={`${id}-hint`}
               onBlur={field.handleBlur}
               onChange={(event) => field.handleChange(event.target.value)}
             />
-            <p id={`${id}-hint`} className={`mt-1 text-sm ${error ? "text-stocks" : "text-muted"}`}>
+            <p id={`${id}-hint`} className={`body-sm mb-0 ${error ? "text-stocks" : "text-muted"}`}>
               {error ?? "Whole months from today, up to 80 years."}
             </p>
           </div>
@@ -270,23 +270,23 @@ function ChoiceField<Name extends "targetKind" | "horizonMode" | "vehicle">({
     <form.Field name={name}>
       {(field) => (
         <fieldset>
-          <legend className="text-sm font-medium">{label}</legend>
+          <legend className="body-sm-strong">{label}</legend>
           <div className="mt-2 flex flex-col gap-2">
             {options.map((option) => {
               const id = `goal-${name}-${option.value}`;
               return (
-                <label key={option.value} htmlFor={id} className="flex gap-3 rounded-xl border border-line bg-white px-3 py-3">
+                <label key={option.value} htmlFor={id} className="flex gap-3 rounded-xl border border-ink bg-card px-3 py-3">
                   <input
                     id={id}
                     type="radio"
                     name={field.name}
-                    className="mt-1 accent-savings"
+                    className="mt-1"
                     checked={field.state.value === option.value}
                     onChange={() => field.handleChange(option.value as GoalTargetKind & HorizonMode & GoalVehicle)}
                   />
                   <span>
-                    <span className="block text-sm font-medium">{option.title}</span>
-                    <span className="mt-1 block text-sm text-muted">{option.hint}</span>
+                    <span className="body-sm-strong block">{option.title}</span>
+                    <span className="body-sm mt-1 block text-muted">{option.hint}</span>
                   </span>
                 </label>
               );
@@ -313,14 +313,14 @@ function SelectField({
   return (
     <form.Field name={name}>
       {(field) => (
-        <div>
-          <label htmlFor={id} className="block text-sm font-medium">
+        <div className="wds-field">
+          <label htmlFor={id} className="wds-eyebrow eyebrow">
             {label}
           </label>
           <select
             id={id}
             name={field.name}
-            className="mt-1 w-full rounded-xl border border-line bg-white px-3 py-2"
+            className="wds-field__input"
             value={field.state.value}
             onBlur={field.handleBlur}
             onChange={(event) => field.handleChange(event.target.value as CompoundingFrequency)}
@@ -352,19 +352,19 @@ function ToggleField({
   return (
     <form.Field name={name}>
       {(field) => (
-        <div className="flex gap-3 rounded-xl border border-line bg-white px-3 py-3">
+        <div className="flex gap-3 rounded-xl border border-ink bg-card px-3 py-3">
           <input
             id={id}
             name={field.name}
             type="checkbox"
-            className="mt-1 size-4 accent-savings"
+            className="mt-1 size-4"
             checked={field.state.value}
             onBlur={field.handleBlur}
             onChange={(event) => field.handleChange(event.target.checked)}
           />
           <label htmlFor={id}>
-            <span className="block text-sm font-medium">{label}</span>
-            <span className="mt-1 block text-sm text-muted">{hint}</span>
+            <span className="body-sm-strong block">{label}</span>
+            <span className="body-sm mt-1 block text-muted">{hint}</span>
           </label>
         </div>
       )}

@@ -104,8 +104,8 @@ export function ScenarioForm({
         </Fieldset>
       ) : null}
 
-      <details className={`rounded-xl bg-tint px-3 py-2 text-sm text-muted ${mode === "compare" ? "lg:col-span-3" : ""}`}>
-        <summary className="cursor-pointer font-medium text-ink">How the numbers are built</summary>
+      <details className={`body-sm rounded-xl bg-tint px-3 py-2 text-muted ${mode === "compare" ? "lg:col-span-3" : ""}`}>
+        <summary className="body-sm-strong cursor-pointer text-ink">How the numbers are built</summary>
         <div className="mt-2 space-y-2">
           {mode !== "stocks" ? (
             <p>
@@ -138,8 +138,8 @@ function Fieldset({
   return (
     <fieldset className="flex flex-col gap-4">
       <legend className="mb-1">
-        <span className="block font-display text-xl text-ink">{title}</span>
-        <span className="block text-sm text-muted">{description}</span>
+        <span className="display-xs block text-ink">{title}</span>
+        <span className="body-sm block text-muted">{description}</span>
       </legend>
       {children}
     </fieldset>
@@ -177,30 +177,28 @@ function NumberField({
       {(field) => {
         const error = firstError(field.state.meta.errors);
         return (
-          <div>
-            <label htmlFor={id} className="block text-sm font-medium">
+          <div className="wds-field">
+            <label htmlFor={id} className="wds-eyebrow eyebrow">
               {label}
             </label>
-            <div
-              className={`mt-1 flex items-center rounded-xl border bg-white ${error ? "border-stocks" : "border-line"}`}
-            >
+            <div className={`field-with-suffix${error ? " wds-field--error" : ""}`}>
               <input
                 id={id}
                 name={field.name}
                 inputMode={name === "years" ? "numeric" : "decimal"}
                 autoComplete="off"
                 spellCheck={false}
-                className="min-w-0 flex-1 bg-transparent px-3 py-2 tabular-nums outline-none"
+                className="wds-field__input tabular-nums"
                 value={field.state.value}
                 aria-invalid={error ? true : undefined}
                 aria-describedby={hint || error ? `${id}-hint` : undefined}
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
               />
-              <span className="pr-3 text-sm text-muted">{suffix}</span>
+              <span className="body-sm">{suffix}</span>
             </div>
             {hint || error ? (
-              <p id={`${id}-hint`} className={`mt-1 text-sm ${error ? "text-stocks" : "text-muted"}`}>
+              <p id={`${id}-hint`} className={`body-sm mb-0 ${error ? "text-stocks" : "text-muted"}`}>
                 {error ?? hint}
               </p>
             ) : null}
@@ -226,14 +224,14 @@ function SelectField<Name extends "contributionFrequency" | "compounding">({
   return (
     <form.Field name={name}>
       {(field) => (
-        <div>
-          <label htmlFor={id} className="block text-sm font-medium">
+        <div className="wds-field">
+          <label htmlFor={id} className="wds-eyebrow eyebrow">
             {label}
           </label>
           <select
             id={id}
             name={field.name}
-            className="mt-1 w-full rounded-xl border border-line bg-white px-3 py-2"
+            className="wds-field__input"
             value={field.state.value}
             onBlur={field.handleBlur}
             onChange={(event) => {
@@ -268,19 +266,19 @@ function ToggleField({
   return (
     <form.Field name={name}>
       {(field) => (
-        <div className="flex gap-3 rounded-xl border border-line bg-white px-3 py-3">
+        <div className="flex gap-3 rounded-xl border border-ink bg-card px-3 py-3">
           <input
             id={id}
             name={field.name}
             type="checkbox"
-            className="mt-1 size-4 accent-savings"
+            className="mt-1 size-4"
             checked={field.state.value}
             onBlur={field.handleBlur}
             onChange={(event) => field.handleChange(event.target.checked)}
           />
           <label htmlFor={id}>
-            <span className="block text-sm font-medium">{label}</span>
-            <span className="mt-1 block text-sm text-muted">{hint}</span>
+            <span className="body-sm-strong block">{label}</span>
+            <span className="body-sm mt-1 block text-muted">{hint}</span>
           </label>
         </div>
       )}
