@@ -48,7 +48,19 @@ Before the first deploy, a repository admin needs to turn Pages on:
 
 The site is then published at `https://<user>.github.io/returno/`. Renaming the repository means changing `pagesBase` in `vite.config.ts` to the new path.
 
-`npm run build:pages` is the same build the workflow runs. `npm run build` keeps the base path at `/` for a local preview.
+`npm run build:pages` is the same build the workflow runs. `npm run build` keeps the base path at `/` for a local preview and for hosts that serve the site from the domain root.
+
+## Static upload (Cloudflare Pages and similar)
+
+GitHub release assets include `returno-<version>.zip`. That archive is the root-path production build: `index.html` is at the top of the zip, not inside a folder. It is the build to drop into Cloudflare Pages, Netlify, or any host that serves the site from `/`. It is not the GitHub Pages artifact, which uses the `/returno/` base path.
+
+On Cloudflare Pages, create a project, choose **Upload assets**, and upload the zip. The archive contains `_redirects`, so `/savings`, `/stocks`, and `/compare` load the app. `404.html` is included for hosts that use a 404 page as the single-page fallback.
+
+To build the same zip locally:
+
+```bash
+npm run package:site
+```
 
 ## License
 
