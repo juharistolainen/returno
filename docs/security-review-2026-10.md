@@ -1,14 +1,14 @@
 # Returno security and bug review
 
-Reviewed commit: `d282362` (v0.3.0 on `main`), plus the fixes in this pull request.
+Reviewed commit: `d282362` (v0.3.0 on `main`), plus the fixes that followed through v0.3.4.
 Date: 27 October 2026.
-Scope: the whole repository. The site is a static Vite build. Production hosting is a Cloudflare Worker that serves those assets and falls back to `index.html`. Nothing here was deployed or tagged.
+Scope: the whole repository. Production is the Cloudflare Worker `returno`. It serves prerendered HTML and returns real 404, 301, and 405 responses. It does not fall back to `index.html`.
 
 ## Result
 
 No high-severity issue. The app has no accounts, no server, and no secret store. Numbers from the URL and from `localStorage` are read field by field and clamped. React renders them as text. `npm audit` reports nothing for production or development dependencies.
 
-The fixes in this pull request are the clear, low-risk ones: pinned Actions, a tighter release-tag filter, chart-year formatting, and a few planner and parser edge cases. Anything that could change product behaviour or hosting policy is left as a recommendation.
+The review fixes were the clear, low-risk ones: pinned Actions, a tighter release-tag filter, chart-year formatting, and a few planner and parser edge cases. Hosting and CI changes after the review are recorded under Current state.
 
 ## Findings
 
@@ -16,13 +16,13 @@ The fixes in this pull request are the clear, low-risk ones: pinned Actions, a t
 
 #### M1. Release workflow used a floating third-party action
 
-**Status:** fixed in this pull request.
+**Status:** fixed.
 
 `softprops/action-gh-release@v2` published the site zip from a workflow whose token can write repository contents, including GitHub releases. A major tag moves. If that tag were repointed at a malicious commit, the next `v*` push would run that code with permission to create or replace a release asset (`overwrite_files: true`).
 
 The same floating-tag pattern applied to `actions/checkout`, `actions/setup-node`, `actions/upload-pages-artifact`, and `actions/deploy-pages`.
 
-**Evidence:** `.github/workflows/release-site.yml` and `.github/workflows/pages.yml` before this change. `contents: write` is set on the release workflow.
+**Evidence:** `.github/workflows/release-site.yml` and the deleted `.github/workflows/pages.yml`. `contents: write` is set on the release workflow, which is what publishing a release needs. The pull-request workflow is `contents: read` only.
 
 **Fix:** each action is pinned to a full commit SHA, with the version in a comment (`action-gh-release` v2.6.2, `checkout` v4.4.0, `setup-node` v4.4.0, `upload-pages-artifact` v3.0.1, `deploy-pages` v4.0.5). Major upgrades (checkout v7, setup-node v7, deploy-pages v5) were not taken. The Pages workflow was later deleted (I3), so only the release-workflow pins remain.
 
@@ -84,9 +84,9 @@ A target date that is not a whole number of years stores the chart year as `mont
 
 The workflow triggers on tag push and uses `contents: write`, which is what creating a release needs. It does not interpolate `${{ github.ref }}` or other event text into `run:` scripts, so a tag name cannot inject shell. The previous filter was `v*`, which also matches tags such as `v-not-a-version`.
 
-**Fix in this pull request:** the filter is now `v[0-9]*.[0-9]*.[0-9]*`. GitHub tag filters are globs, so this still allows a suffix (`v0.3.0-test`).
+**Fix:** the filter is `v[0-9]*.[0-9]*.[0-9]*`. GitHub tag filters are globs, so this still allows a suffix (`v0.3.0-test`).
 
-**Left for Juha:** in GitHub tag protection, allow only maintainers to push tags and disallow tag updates. `overwrite_files: true` means a moved tag can replace that release's zip. That is useful for a rebuilt tag and dangerous if tags are not protected.
+**Tag protection:** done. The `Release tags` ruleset limits who can push or move `v*` tags. `overwrite_files: true` can still replace a release asset when a protected tag is rebuilt on purpose.
 
 #### L7. Optional `fsevents` runs an install script
 
@@ -120,7 +120,7 @@ The only `hasInstallScript` entry is `fsevents@2.3.3`, an optional macOS depende
 | `oxlint` | 1.50.0 | 1.90.0 |
 | `vite` | 8.0.8 | 8.3.5 |
 
-**Migration:** TanStack Table 9 is the only API change. `YearTable` now calls `useTable` with an explicit `tableFeatures({})`. The core row model is built in, so `getCoreRowModel` is gone. `ColumnDef` takes the feature set as its first type argument. The table reads cells with `getAllCells()` because column visibility is no longer included unless that feature is registered. Headers and cells render through `table.FlexRender`. TypeScript 7 and Vitest 5 needed no config change. `tsconfig` is unchanged, and `vitest.config.ts` is unchanged. Lint, typecheck, the 54 unit tests, and `npm run build` pass.
+**Migration:** TanStack Table 9 is the only API change. `YearTable` now calls `useTable` with an explicit `tableFeatures({})`. The core row model is built in, so `getCoreRowModel` is gone. `ColumnDef` takes the feature set as its first type argument. The table reads cells with `getAllCells()` because column visibility is no longer included unless that feature is registered. Headers and cells render through `table.FlexRender`. TypeScript 7 and Vitest 5 needed no config change. `tsconfig` is unchanged, and `vitest.config.ts` is unchanged. Lint, typecheck, the unit tests, and `npm run build` passed at the time. The suite is 89 tests as of the Node zip writer.
 
 ### Informational
 
@@ -148,11 +148,11 @@ X-Frame-Options: DENY
 
 `script-src` does not use `'unsafe-inline'`. The prerendered `application/ld+json` blocks are allowed by hash. The same hashes cover the copy React inserts, including after a client-side route change, because every page's hash is on every response. `style-src` keeps `'unsafe-inline'` because Recharts and React set `style` attributes, and a hash cannot allow those. Checked in Chrome against the built worker: `/savings` rendered the final balance and the chart SVG, both JSON-LD scripts matched a hash already in the policy, and Chrome reported no Content-Security-Policy refusal.
 
-The Pages zip still has `_redirects` (`/* /index.html 200`). That file does not set these headers. The Worker does.
+`public/_redirects` is gone, and `/404.html` is not a public route. The Worker still uses the prerendered not-found document as the body of a 404. The site zip no longer contains `_redirects`.
 
-#### I3. GitHub Pages workflow is present and disabled
+#### I3. GitHub Pages workflow was present and disabled
 
-**Status:** done. `.github/workflows/pages.yml` is deleted. It is not re-enabled and it is not run. `npm run build:pages` remains, so a `/returno/` base build can still be produced by hand. The README no longer tells anyone to turn the Pages workflow on.
+**Status:** done. `.github/workflows/pages.yml` is deleted. `npm run build:pages`, the `/returno/` Vite base, the `spaFallback` plugin, and `public/_redirects` are removed. The GitHub Pages site is unpublished.
 
 #### I4. Financial model limits that are intentional
 
@@ -172,18 +172,31 @@ Checked against the existing tests and extra cases added here:
 
 No tokens, private keys, or `.env` files are in the tree. `git` history for the application is the public calculator plus the release commits. Release zips are not committed. `npm audit` was run for the whole tree and with `--omit=dev`; both were clean.
 
-## What this pull request changes
+## What the review fixes changed
 
-- Pins the Actions used by the release workflow to commit SHAs. The Pages workflow was removed instead of kept in a pinned, disabled state.
-- Narrows the release tag filter to version-like tags.
-- Deletes `.github/workflows/pages.yml`.
-- Upgrades every direct dependency to the latest stable release, including TanStack Table 9, TypeScript 7, Vitest 5, and `@types/node` 26.
-- Updates the release notes so they mention `/goal` and do not say GitHub Pages is the deploy path.
-- Formats chart years, distinguishes a near date from a past date, and refuses a horizon past 80 years.
-- Stops non-finite fund fees from producing `NaN`.
-- Rejects non-decimal strings in scenario numbers.
-- Adds tests for those cases, plus a small grid of savings rates checked against the forward projection.
+- Pinned the Actions used by the release workflow to commit SHAs. The Pages workflow was removed instead of kept in a pinned, disabled state.
+- Narrowed the release tag filter to version-like tags.
+- Deleted `.github/workflows/pages.yml`.
+- Upgraded every direct dependency to the latest stable release, including TanStack Table 9, TypeScript 7, Vitest 5, and `@types/node` 26.
+- Updated the release notes so they describe the Worker deploy.
+- Formatted chart years, distinguished a near date from a past date, and refused a horizon past 80 years.
+- Stopped non-finite fund fees from producing `NaN`.
+- Rejected non-decimal strings in scenario numbers.
+- Added tests for those cases, plus a small grid of savings rates checked against the forward projection.
+
+## Current state
+
+As of 27 October 2026, after v0.3.4:
+
+- The Worker returns 404, 301, and 405 itself. Unknown paths, including `/_redirects` and `/404.html`, get the prerendered not-found page with status 404. There is no `index.html` fallback.
+- Tag protection is on through the `Release tags` ruleset.
+- The test suite is 89 tests. It covers the calculators, search params, the site zip, and the worker routing cases, including the path-traversal and open-redirect regressions.
+- The GitHub Pages site is unpublished. Pages leftovers (`build:pages`, `/returno/` base, `spaFallback`, `public/_redirects`) are removed.
+- Cloudflare zone settings in use: Always Use HTTPS is on, and the minimum TLS version is 1.2.
+- Dependabot (npm and GitHub Actions, weekly), CodeQL default setup, and private vulnerability reporting are enabled.
+- CI (check name `CI / ci`) runs on pull requests to `main` and on pushes to `main`. It uses Node 22 and runs lint, typecheck, test, build, `build:worker`, and `npm audit --omit=dev --audit-level=high`.
+- A `v*` tag runs the release workflow, which builds `worker.mjs` and attaches it to the GitHub release together with `returno-x.y.z.zip`. The zip is written by `scripts/zip-site.mjs` (Node). There is no Python in the repo. A merge does not deploy. A Cloudflare deploy happens only when the owner asks.
 
 ## Left for Juha
 
-- Turn on tag protection so only maintainers can push or move `v*` tags.
+Nothing from this review is still open. Tag protection, which was the remaining item, is done.

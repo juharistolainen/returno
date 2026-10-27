@@ -48,9 +48,9 @@ npm run build && npm run build:worker
 
 `worker.mjs` is generated and is not committed. It serves each prerendered route, returns 404 for an unknown path and 405 for anything other than GET or HEAD, redirects a non-canonical host to `https://returno.site`, and sends security headers on every response, including a Content-Security-Policy.
 
-A version tag `v*` runs the release workflow and publishes a GitHub release with `returno-x.y.z.zip` and `worker.mjs`. Deploying either file to Cloudflare is manual, and only when the owner explicitly asks. A merge does not deploy.
+A version tag `v*` runs the release workflow, which lints, typechecks, tests, builds the site, runs `build:worker`, and attaches `returno-x.y.z.zip` and `worker.mjs` to the GitHub release. The zip is the prerendered site with `index.html` at the top of the archive, kept so the files can be inspected. Production responses come from the Worker. Deploying to Cloudflare is manual, and only when the owner explicitly asks. A merge does not deploy.
 
-`npm run package:site` builds the same zip locally.
+`npm run zip` packs an existing `dist/` into `returno-<version>.zip`. `npm run package:site` builds the site and then runs that.
 
 ## More
 
