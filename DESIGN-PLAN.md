@@ -37,6 +37,8 @@ Recorded 2026-10-27, from Juha.
 3. **Favicon and `og.png` stay as they are.** Do not edit `public/favicon.svg`, `scripts/og-image.mjs`, or `public/og.png`. Their current hexes are a listed exception.
 4. **Screen titles are 32px.** Calculator pages and both 404 pages use `display-sm` (32px, weight 600). The home `h1` uses `display-md` (40px, weight 900).
 5. **Both 404 links say "Open the savings calculator" and point at `/savings`.** That label names the page it opens. "Back to Returno" does not. The heading "That page is not here" and the sentence under it stay. This is the one copy change in the retrofit.
+6. **The static 404 has no calculator nav.** The other prerendered pages include that nav. `dist/404.html` keeps the heading, the sentence, the savings link, and the build stamp.
+7. **Checkboxes and radios use ink.** `accent-color: var(--ink)` on `field-taxEnabled`, `field-inflationEnabled`, `goal-taxEnabled`, `goal-inflationEnabled`, and the goal radios. They are not an accent fill. The wordmark disc stays the only one.
 
 ## Implementation choices
 
@@ -751,15 +753,6 @@ Vitest is Node, not a browser (`vitest.config.ts`). It does not snapshot the pag
 After the last build, confirm `dist/` contains `index.html`, `savings/index.html`, `stocks/index.html`, `compare/index.html`, `goal/index.html`, `404.html`, `sitemap.xml`, `llms.txt`, `llms-full.txt`, `og.png`, `favicon.svg`, and the fingerprinted CSS, JS, and woff2 files. The worker log prints the prerendered HTML list.
 
 No-JS check: open `dist/savings/index.html` with scripts disabled (or just read the file) and confirm the h1, the formula sections, and the stamp are present and use the token classes.
-
----
-
-## Still open
-
-These were not in the 2026-10-27 answers. The plan proceeds with the default under each one.
-
-1. **Static 404 nav.** Other prerendered pages include the calculator nav. The static 404 does not. Leave it out unless Juha asks for it.
-2. **Checkboxes and radios use ink, not the accent,** so the mark stays the only accent fill. Switch them to `--primary` only if Juha asks.
 
 ## Out of scope
 
