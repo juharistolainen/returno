@@ -4,9 +4,15 @@ import { InflationNote } from "../components/InflationNote.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
 import { SeoBlock } from "../components/SeoBlock.tsx";
 import { ScenarioForm } from "../components/ScenarioForm.tsx";
-import { Summary } from "../components/Summary.tsx";
+import { Summary, SummaryColumns, type Stat } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
-import { compareColumnHeader, compareYearColumnIds, type CompareColumnId } from "../lib/compare-columns.ts";
+import {
+  compareColumnHeader,
+  compareSummaryKeys,
+  compareYearColumnIds,
+  type CompareColumnId,
+  type CompareSummaryKey,
+} from "../lib/compare-columns.ts";
 import { formatEur, formatSignedEur } from "../lib/format.ts";
 import { compareInflationCopy, lostToInflation } from "../lib/inflation-copy.ts";
 import { requirePage } from "../content/seo.ts";
@@ -54,6 +60,33 @@ function ComparePage() {
   });
   const difference = comparison.nominalDifference;
   const ahead = difference > 0 ? "Stocks end ahead" : difference < 0 ? "Savings end ahead" : "They end even";
+  const summaryStats: Record<CompareSummaryKey, Stat> = {
+    savings: { label: "Savings", value: formatEur(comparison.savings.finalBalance), tone: "text-savings" },
+    savingsReal: {
+      label: "Savings in today's euros",
+      value: formatEur(comparison.savings.finalRealBalance),
+      tone: "text-savings",
+    },
+    savingsLost: {
+      label: "Savings lost to inflation",
+      value: formatEur(lostToInflation(comparison.savings.finalBalance, comparison.savings.finalRealBalance)),
+      hint: "Nominal ending balance minus today's euros",
+    },
+    stocks: { label: "Stocks", value: formatEur(comparison.stocks.finalBalance), tone: "text-stocks" },
+    stocksReal: {
+      label: "Stocks in today's euros",
+      value: formatEur(comparison.stocks.finalRealBalance),
+      tone: "text-real",
+      hint: `Gap versus savings, in today's euros: ${formatSignedEur(comparison.realDifference)}`,
+    },
+    stocksLost: {
+      label: "Stocks lost to inflation",
+      value: formatEur(lostToInflation(comparison.stocks.finalBalance, comparison.stocks.finalRealBalance)),
+      hint: "Nominal ending balance minus today's euros",
+    },
+    lead: { label: ahead, value: formatSignedEur(difference), hint: "Nominal balance at the end" },
+  };
+  const summaryGroups = compareSummaryKeys(scenario.inflationEnabled).map((keys) => keys.map((key) => summaryStats[key]));
   const series = [
     { dataKey: "savings", label: "Savings", color: "#0f6e62" },
     { dataKey: "stocks", label: "Stocks", color: "#b4532a" },
@@ -76,42 +109,11 @@ function ComparePage() {
         <section className="rounded-2xl border border-line bg-card p-4 sm:p-5">
           <ScenarioForm scenario={scenario} onScenario={update} mode="compare" />
         </section>
-        <Summary
-          stats={[
-            { label: "Savings", value: formatEur(comparison.savings.finalBalance), tone: "text-savings" },
-            { label: "Stocks", value: formatEur(comparison.stocks.finalBalance), tone: "text-stocks" },
-            {
-              label: ahead,
-              value: formatSignedEur(difference),
-              hint: "Nominal balance at the end",
-            },
-            ...(scenario.inflationEnabled
-              ? [
-                  {
-                    label: "Savings in today's euros",
-                    value: formatEur(comparison.savings.finalRealBalance),
-                    tone: "text-savings",
-                  },
-                  {
-                    label: "Stocks in today's euros",
-                    value: formatEur(comparison.stocks.finalRealBalance),
-                    tone: "text-real",
-                    hint: `Gap versus savings, in today's euros: ${formatSignedEur(comparison.realDifference)}`,
-                  },
-                  {
-                    label: "Savings lost to inflation",
-                    value: formatEur(lostToInflation(comparison.savings.finalBalance, comparison.savings.finalRealBalance)),
-                    hint: "Nominal ending balance minus today's euros",
-                  },
-                  {
-                    label: "Stocks lost to inflation",
-                    value: formatEur(lostToInflation(comparison.stocks.finalBalance, comparison.stocks.finalRealBalance)),
-                    hint: "Nominal ending balance minus today's euros",
-                  },
-                ]
-              : []),
-          ]}
-        />
+        {scenario.inflationEnabled ? (
+          <SummaryColumns columns={summaryGroups} />
+        ) : (
+          <Summary stats={summaryGroups[0] ?? []} />
+        )}
         {scenario.inflationEnabled ? (
           <InflationNote text={compareInflationCopy(comparison.nominalDifference, comparison.realDifference)} />
         ) : null}
