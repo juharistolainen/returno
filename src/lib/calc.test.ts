@@ -17,6 +17,7 @@ function savings(overrides: Partial<SavingsInput> = {}): SavingsInput {
     compounding: "annually",
     years: 1,
     taxRate: 0,
+    inflationRate: 0,
     ...overrides,
   };
 }
@@ -362,6 +363,27 @@ describe("projectInvestment", () => {
   });
 });
 
+describe("projectSavings inflation", () => {
+  it("restates the balance in today's euros and leaves the nominal path unchanged", () => {
+    const input = {
+      balance: 8_000,
+      contribution: 200,
+      annualRate: 0.03,
+      compounding: "monthly" as const,
+      years: 15,
+    };
+    const nominal = projectSavings(savings(input));
+    const inflated = projectSavings(savings({ ...input, inflationRate: 0.02 }));
+    expect(inflated.finalBalance).toBeCloseTo(nominal.finalBalance, 6);
+    expect(inflated.totalGain).toBeCloseTo(nominal.totalGain, 6);
+    expect(inflated.totalTax).toBeCloseTo(nominal.totalTax, 6);
+    expect(inflated.finalRealBalance).toBeCloseTo(nominal.finalBalance / Math.pow(1.02, 15), 4);
+    expect(inflated.rows[0]?.realEndBalance).toBeCloseTo((inflated.rows[0]?.endBalance ?? 0) / 1.02, 6);
+    expect(inflated.rows[14]?.realEndBalance).toBeCloseTo(inflated.finalRealBalance, 6);
+    expect(nominal.finalRealBalance).toBeCloseTo(nominal.finalBalance, 8);
+  });
+});
+
 describe("compareProjections and chart points", () => {
   it("reports the ending gap between the stock and savings paths", () => {
     const savingsInput = savings({
@@ -385,10 +407,40 @@ describe("compareProjections and chart points", () => {
       6,
     );
     expect(comparison.realDifference).toBeCloseTo(
-      comparison.stocks.finalRealBalance - comparison.savings.finalBalance,
+      comparison.stocks.finalRealBalance - comparison.savings.finalRealBalance,
       6,
     );
     expect(comparison.nominalDifference).toBeGreaterThan(0);
+  });
+
+  it("deflates both balances before comparing purchasing power", () => {
+    const comparison = compareProjections(
+      savings({
+        balance: 10_000,
+        contribution: 200,
+        annualRate: 0.02,
+        compounding: "monthly",
+        years: 10,
+        inflationRate: 0.02,
+      }),
+      stocks({
+        balance: 10_000,
+        contribution: 200,
+        expectedReturn: 0.07,
+        feeRate: 0.002,
+        inflationRate: 0.02,
+        years: 10,
+      }),
+    );
+    expect(comparison.savings.finalRealBalance).toBeLessThan(comparison.savings.finalBalance);
+    expect(comparison.realDifference).toBeCloseTo(
+      comparison.stocks.finalRealBalance - comparison.savings.finalRealBalance,
+      6,
+    );
+    expect(comparison.realDifference).not.toBeCloseTo(
+      comparison.stocks.finalRealBalance - comparison.savings.finalBalance,
+      0,
+    );
   });
 
   it("starts the chart at the current balance", () => {

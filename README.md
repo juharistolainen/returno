@@ -6,14 +6,16 @@ The figures are estimates, not financial advice. A rate you type is assumed to s
 
 ## Features
 
-- **Savings** (`/savings`) compounds a balance with regular top-ups, a nominal annual rate, and a compounding frequency. Tax on interest is optional.
-- **Stocks** (`/stocks`) applies an expected yearly return and an annual fund fee. Inflation is optional and only restates the result in today's euros.
-- **Compare** (`/compare`) runs both paths on the same deposits and shows the gap at the end.
-- **Goal** (`/goal`) turns a current balance and a target net return, due by a date, into the monthly amount to save. The target can also be a final balance, and the horizon can be a number of years.
+- **Savings** (`/savings`) compounds a balance with regular top-ups, a nominal annual rate, and a compounding frequency. Tax on interest is optional. Inflation, when on, restates the balance in today's euros.
+- **Stocks** (`/stocks`) applies an expected yearly return and an annual fund fee. The same inflation switch restates that balance in today's euros.
+- **Compare** (`/compare`) runs both paths on the same deposits and shows the gap at the end. Inflation, when on, restates both paths.
+- **Goal** (`/goal`) turns a current balance and a target net return, due by a date, into the monthly amount to save. The target can also be a final balance, and the horizon can be a number of years. When inflation is on, the target is in today's euros for either account.
 - A shareable URL contains only the values that differ from the defaults. A bare visit restores the last scenario from this browser.
 - The footer shows the app version and the UTC build time.
 
 Top-ups go in at the start of each month or year. Savings interest is credited at the compounding frequency (daily uses a 365-day year). Amounts are shown in euros.
+
+Inflation is one annual rate and one on/off switch, shared by every calculator. It is off by default. The query keys are `inflationEnabled` and `inflationRate` (a percent). Those keys are the ones older links already used, and a link that turned inflation on still turns the same switch on. The interest rate and the expected return are nominal, so the euros in the account do not change. Each year-end balance is divided by (1 + inflation) raised to the year. On the goal page the typed target is then in today's euros, and the planner solves for the nominal balance that has that purchasing power. Contributions, interest, tax, and fees stay in nominal euros. A net-growth target is the nominal gain deflated by the factor at the horizon, not each deposit deflated on the day it was paid.
 
 ## Stack
 

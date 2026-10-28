@@ -49,6 +49,7 @@ describe("linear growth matches the forward simulation", () => {
         compounding: sample.compounding,
         years: sample.years,
         taxRate: sample.taxRate,
+        inflationRate: 0,
       });
       expectMoney(growth.alpha * sample.balance + growth.beta * sample.monthly, projected.finalBalance, 0.02);
     }
@@ -114,6 +115,7 @@ describe("planGoal", () => {
         compounding: "monthly",
         years: 20,
         taxRate,
+        inflationRate: 0,
       });
       expect(replay.finalBalance).toBeGreaterThanOrEqual(100_000 - 0.02);
       expect(plan.monthlyContribution).toBeGreaterThan(0);
@@ -152,6 +154,42 @@ describe("planGoal", () => {
       inflationRate: 0,
     });
     expect(replay.totalGain).toBeGreaterThanOrEqual(20_000 - 0.05);
+  });
+
+  it("treats an inflation-adjusted savings target as today's euros", () => {
+    const shared = {
+      vehicle: "savings" as const,
+      targetKind: "balance" as const,
+      targetAmount: 20_000,
+      balance: 1_000,
+      annualRate: 0.03,
+      compounding: "monthly" as const,
+      months: 10 * 12,
+    };
+    const plan = planGoal(savingsGoal({ ...shared, inflationRate: 0.02 }));
+    const nominal = planGoal(savingsGoal(shared));
+    expect(plan.status).toBe("solvable");
+    expect(plan.monthlyContribution).toBeGreaterThan(nominal.monthlyContribution);
+    expect(plan.projection.finalRealBalance).toBeGreaterThanOrEqual(20_000 - 0.05);
+    expect(plan.projection.finalBalance).toBeGreaterThan(plan.projection.finalRealBalance);
+  });
+
+  it("keeps a partial-year savings goal in today's euros", () => {
+    const plan = planGoal(
+      savingsGoal({
+        balance: 0,
+        targetAmount: 5_000,
+        annualRate: 0.04,
+        compounding: "monthly",
+        inflationRate: 0.03,
+        months: 18,
+      }),
+    );
+    expect(plan.status).toBe("solvable");
+    expect(plan.projection.finalRealBalance).toBeGreaterThanOrEqual(5_000 - 0.05);
+    expect(plan.projection.finalBalance).toBeGreaterThan(plan.projection.finalRealBalance);
+    expect(plan.projection.rows.at(-1)?.realEndBalance).toBeCloseTo(plan.projection.finalRealBalance, 6);
+    expect(plan.projection.rows.at(-1)?.year).toBeCloseTo(1.5, 8);
   });
 
   it("treats an inflation-adjusted stock target as today's euros", () => {
@@ -235,6 +273,7 @@ describe("closed form across a spread of rates", () => {
             compounding: "quarterly",
             years: 10,
             taxRate: annualRate === 0 ? 0 : 0.3,
+            inflationRate: 0,
           });
           expectMoney(growth.alpha * balance + growth.beta * monthly, projected.finalBalance, 0.05);
           expect(Number.isFinite(projected.finalBalance)).toBe(true);

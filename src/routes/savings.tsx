@@ -1,11 +1,13 @@
 import { createRoute } from "@tanstack/react-router";
 import { GrowthChart } from "../components/GrowthChart.tsx";
+import { InflationNote } from "../components/InflationNote.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
 import { SeoBlock } from "../components/SeoBlock.tsx";
 import { ScenarioForm } from "../components/ScenarioForm.tsx";
 import { Summary } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
 import { formatEur } from "../lib/format.ts";
+import { balanceInflationCopy, lostToInflation } from "../lib/inflation-copy.ts";
 import { requirePage } from "../content/seo.ts";
 import { projectSavingsScenario, savingsChart } from "../lib/project.ts";
 import { calculatorSearch, validateSearch } from "../lib/search.ts";
@@ -29,7 +31,14 @@ function SavingsPage() {
   const chart = savingsChart(scenario, projection).map((point) => ({
     year: point.year,
     balance: point.balance,
+    real: point.real,
   }));
+  const series = scenario.inflationEnabled
+    ? [
+        { dataKey: "balance", label: "Nominal balance", color: "#0f6e62" },
+        { dataKey: "real", label: "Today's euros", color: "#35557a" },
+      ]
+    : [{ dataKey: "balance", label: "Balance", color: "#0f6e62" }];
 
   return (
     <>
@@ -51,9 +60,33 @@ function SavingsPage() {
               ...(scenario.taxEnabled
                 ? [{ label: "Tax on interest", value: formatEur(projection.totalTax), hint: "Paid from the account" }]
                 : []),
+              ...(scenario.inflationEnabled
+                ? [
+                    {
+                      label: "In today's euros",
+                      value: formatEur(projection.finalRealBalance),
+                      tone: "text-real",
+                      hint: "Purchasing power at the end",
+                    },
+                    {
+                      label: "Lost to inflation",
+                      value: formatEur(lostToInflation(projection.finalBalance, projection.finalRealBalance)),
+                      hint: "Nominal ending balance minus today's euros",
+                    },
+                  ]
+                : []),
             ]}
           />
-          <GrowthChart data={chart} series={[{ dataKey: "balance", label: "Balance", color: "#0f6e62" }]} label="Growth" />
+          {scenario.inflationEnabled ? (
+            <InflationNote
+              text={balanceInflationCopy(
+                scenario.inflationRate,
+                projection.finalRealBalance,
+                lostToInflation(projection.finalBalance, projection.finalRealBalance),
+              )}
+            />
+          ) : null}
+          <GrowthChart data={chart} series={series} label="Growth" />
           <YearTable
             rows={projection.rows}
             caption="Savings balance at the end of each year"
@@ -70,6 +103,22 @@ function SavingsPage() {
                 ? [{ id: "tax", header: "Tax", align: "right" as const, cell: (row: (typeof projection.rows)[number]) => formatEur(row.tax) }]
                 : []),
               { id: "balance", header: "End balance", align: "right", cell: (row) => formatEur(row.endBalance) },
+              ...(scenario.inflationEnabled
+                ? [
+                    {
+                      id: "real",
+                      header: "Today's euros",
+                      align: "right" as const,
+                      cell: (row: (typeof projection.rows)[number]) => formatEur(row.realEndBalance),
+                    },
+                    {
+                      id: "lost",
+                      header: "Lost to inflation",
+                      align: "right" as const,
+                      cell: (row: (typeof projection.rows)[number]) => formatEur(lostToInflation(row.endBalance, row.realEndBalance)),
+                    },
+                  ]
+                : []),
             ]}
           />
         </div>

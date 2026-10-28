@@ -14,7 +14,9 @@ export interface Scenario {
   taxRate: number;
   expectedReturn: number;
   fee: number;
+  /** Shared by savings and stocks. Off leaves every figure in nominal euros. */
   inflationEnabled: boolean;
+  /** Annual inflation in percent. Used only while `inflationEnabled` is on. */
   inflationRate: number;
   targetAmount: number;
   targetKind: GoalTargetKind;

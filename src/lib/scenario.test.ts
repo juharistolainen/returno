@@ -66,6 +66,18 @@ describe("parseScenario", () => {
     expect(scenario.targetDate).toBe(defaultScenario.targetDate);
   });
 
+  it("keeps an existing inflation link on the same keys", () => {
+    const scenario = parseScenario({ inflationEnabled: "true", inflationRate: "2.5" });
+    expect(scenario.inflationEnabled).toBe(true);
+    expect(scenario.inflationRate).toBe(2.5);
+    expect(scenario.savingsRate).toBe(defaultScenario.savingsRate);
+    expect(scenario.expectedReturn).toBe(defaultScenario.expectedReturn);
+    const search = scenarioToSearch(scenario);
+    expect(search.inflationEnabled).toBe(true);
+    expect(search.inflationRate).toBe(2.5);
+    expect(parseScenario(defaultParseSearch(defaultStringifySearch(search)))).toEqual(scenario);
+  });
+
   it("reads boolean flags from strings", () => {
     const scenario = parseScenario({ taxEnabled: "true", inflationEnabled: "0" });
     expect(scenario.taxEnabled).toBe(true);

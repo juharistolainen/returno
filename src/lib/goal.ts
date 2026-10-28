@@ -6,6 +6,11 @@
  * the same timing rules as the savings and stock projections (top-up at the
  * start of the month, interest net of tax, stock growth net of the fund fee).
  * A whole number of years is checked against those projections in tests.
+ *
+ * Inflation uses the same factor as the forward projections. A non-zero rate
+ * means the target is in today's euros, for savings and for stocks. The nominal
+ * amount the account must reach is the typed target times (1 + inflation) raised
+ * to the horizon in years.
  */
 
 import {
@@ -17,6 +22,7 @@ import {
   type Projection,
   type YearRow,
 } from "./calc.ts";
+import { inflationFactor, realValue } from "./inflation.ts";
 
 export type GoalVehicle = "savings" | "stocks";
 export type GoalTargetKind = "balance" | "growth";
@@ -42,7 +48,7 @@ export interface GoalInput {
   taxRate: number;
   expectedReturn: number;
   feeRate: number;
-  /** Decimal inflation. Zero leaves the target in nominal euros. Stocks only. */
+  /** Decimal inflation. Zero leaves the target in nominal euros. Savings and stocks. */
   inflationRate: number;
 }
 
@@ -180,11 +186,6 @@ export function stockLinearGrowth(months: number, expectedReturn: number, feeRat
   return { alpha: series.alpha, beta: monthly * series.sum, deposits: wholeMonths };
 }
 
-function inflationFactor(months: number, inflationRate: number): number {
-  if (inflationRate === 0 || months <= 0) return 1;
-  return Math.pow(1 + inflationRate, months / MONTHS_PER_YEAR);
-}
-
 function roundUpCents(value: number): number {
   const scaled = value * 100;
   const nearest = Math.round(scaled);
@@ -226,7 +227,7 @@ export function planGoal(input: GoalInput): GoalPlan {
     input.vehicle === "savings"
       ? savingsLinearGrowth(solvableMonths, input.annualRate, input.compounding, input.taxRate)
       : stockLinearGrowth(solvableMonths, input.expectedReturn, input.feeRate);
-  const infl = input.vehicle === "stocks" ? inflationFactor(solvableMonths, input.inflationRate) : 1;
+  const infl = inflationFactor(solvableMonths / MONTHS_PER_YEAR, input.inflationRate);
   if (!Number.isFinite(growth.alpha) || !Number.isFinite(growth.beta) || !Number.isFinite(infl)) {
     return {
       status: "unreachable",
@@ -257,6 +258,7 @@ function solveMonthly(
     return (input.targetKind === "balance" ? result.final : result.gain) + 0.005 >= input.targetAmount;
   };
 
+  const today = infl === 1 ? "" : " The target is in today's euros.";
   if (covered(0)) {
     return {
       status: "reached",
@@ -265,8 +267,8 @@ function solveMonthly(
         months < 1
           ? "There is no time left to save, but the current balance already covers this goal."
           : input.targetKind === "balance"
-            ? "The current balance already reaches the target on its own, after tax and fees. The monthly top-up is zero."
-            : "The current balance already grows enough, after tax and fees. The monthly top-up is zero.",
+            ? `The current balance already reaches the target on its own, after tax and fees. The monthly top-up is zero.${today}`
+            : `The current balance already grows enough, after tax and fees. The monthly top-up is zero.${today}`,
     };
   }
 
@@ -290,7 +292,10 @@ function solveMonthly(
       };
     }
     const exact = (input.targetAmount * infl - growth.alpha * input.balance) / growth.beta;
-    return finishSolve(exact, "Monthly top-up for the final balance, after tax and fees, rounded up to the next cent.");
+    return finishSolve(
+      exact,
+      `Monthly top-up for the final balance, after tax and fees, rounded up to the next cent.${today}`,
+    );
   }
 
   const denominator = growth.beta - growth.deposits;
@@ -306,7 +311,10 @@ function solveMonthly(
     };
   }
   const exact = (input.targetAmount * infl - principalGain) / denominator;
-  return finishSolve(exact, "Monthly top-up for the net growth target, after tax and fees, rounded up to the next cent.");
+  return finishSolve(
+    exact,
+    `Monthly top-up for the net growth target, after tax and fees, rounded up to the next cent.${today}`,
+  );
 }
 
 function finishSolve(exact: number, solvableMessage: string): { status: GoalStatus; message: string; monthly: number } {
@@ -339,6 +347,7 @@ function projectPlan(input: GoalInput, months: number, monthly: number): Project
         compounding: input.compounding,
         years,
         taxRate: input.taxRate,
+        inflationRate: input.inflationRate,
       });
     }
     return projectInvestment({
@@ -377,7 +386,7 @@ function pushYear(
     fees,
     gain: gross - tax - fees,
     endBalance,
-    realEndBalance: inflationRate === 0 ? endBalance : endBalance / Math.pow(1 + inflationRate, year),
+    realEndBalance: realValue(endBalance, inflationRate, year),
     cumulativeContributions: cumulative,
   });
 }
@@ -422,7 +431,18 @@ function projectSavingsMonths(input: GoalInput, months: number, monthly: number)
     cursor += monthsThisPeriod;
     if (cursor % MONTHS_PER_YEAR === 0 || cursor === months) {
       totalGain += yearGross - yearTax;
-      pushYear(rows, cursor / MONTHS_PER_YEAR, yearStart, yearContributions, yearGross, yearTax, 0, balance, totalContributions, 0);
+      pushYear(
+        rows,
+        cursor / MONTHS_PER_YEAR,
+        yearStart,
+        yearContributions,
+        yearGross,
+        yearTax,
+        0,
+        balance,
+        totalContributions,
+        input.inflationRate,
+      );
       yearStart = balance;
       yearContributions = 0;
       yearGross = 0;
@@ -432,7 +452,7 @@ function projectSavingsMonths(input: GoalInput, months: number, monthly: number)
 
   return {
     finalBalance: balance,
-    finalRealBalance: balance,
+    finalRealBalance: rows.length > 0 ? rows[rows.length - 1]!.realEndBalance : balance,
     totalContributions,
     totalGain,
     totalTax,
@@ -473,7 +493,18 @@ function projectSavingsDays(input: GoalInput, months: number, monthly: number): 
     const yearBoundary = dayOfYear === DAYS_PER_YEAR - 1 || day === totalDays - 1;
     if (yearBoundary) {
       totalGain += yearGross - yearTax;
-      pushYear(rows, (day + 1) / DAYS_PER_YEAR, yearStart, yearContributions, yearGross, yearTax, 0, balance, totalContributions, 0);
+      pushYear(
+        rows,
+        (day + 1) / DAYS_PER_YEAR,
+        yearStart,
+        yearContributions,
+        yearGross,
+        yearTax,
+        0,
+        balance,
+        totalContributions,
+        input.inflationRate,
+      );
       yearStart = balance;
       yearContributions = 0;
       yearGross = 0;
@@ -483,7 +514,7 @@ function projectSavingsDays(input: GoalInput, months: number, monthly: number): 
 
   return {
     finalBalance: balance,
-    finalRealBalance: balance,
+    finalRealBalance: rows.length > 0 ? rows[rows.length - 1]!.realEndBalance : balance,
     totalContributions,
     totalGain,
     totalTax,

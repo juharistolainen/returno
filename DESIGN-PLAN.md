@@ -354,7 +354,7 @@ One shell, `RootLayout` in `src/components/AppShell.tsx`, wraps every matched ro
 | Route | File | Template |
 |---|---|---|
 | `/` | `src/routes/home.tsx` | Header, four calculator links, `SeoBlock`. |
-| `/savings` | `src/routes/savings.tsx` | `PageIntro`, form card, summary, area chart, year table, SEO. |
+| `/savings` | `src/routes/savings.tsx` | `PageIntro`, form card, summary, area chart, year table, SEO. The inflation series is added when it is on. |
 | `/stocks` | `src/routes/stocks.tsx` | Same, with the inflation series when it is on. |
 | `/compare` | `src/routes/compare.tsx` | Intro, full-width form, summary, multi-series chart, table, SEO. |
 | `/goal` | `src/routes/goal.tsx` | Intro, goal form, status sentence, summary, chart, table, SEO. |
@@ -678,7 +678,7 @@ Apply the chart section. Then:
 ### Acceptance
 
 - [ ] `rg "#[0-9a-fA-F]{3,8}" src` prints no hits in TSX. `public/favicon.svg` and `scripts/og-image.mjs` still contain their current hexes. `rg "chart-1|chart-2|cyan-base|lime-base" src` prints no hits.
-- [ ] Savings chart is one ink line on a pale fill. Compare shows three distinguishable lines when inflation is on, and the legend words match.
+- [ ] Savings chart is one ink line on a pale fill when inflation is off, and adds today's euros when inflation is on. Compare shows four distinguishable lines when inflation is on (savings, stocks, and both in today's euros), and the legend words match.
 - [ ] Table still scrolls inside `max-h-[28rem]` and the header sticks.
 - [ ] `npm test` passes, including `src/content/seo.test.ts`.
 
