@@ -34,7 +34,7 @@ function GoalPage() {
     real: point.real,
     ...(scenario.targetKind === "balance" ? { target: scenario.targetAmount } : {}),
   }));
-  const inflationOn = scenario.vehicle === "stocks" && scenario.inflationEnabled;
+  const inflationOn = scenario.inflationEnabled;
   const series = [
     {
       dataKey: "balance",
@@ -124,7 +124,7 @@ function goalInput(scenario: Scenario, today: Date): GoalInput {
     taxRate: scenario.taxEnabled ? scenario.taxRate / 100 : 0,
     expectedReturn: scenario.expectedReturn / 100,
     feeRate: scenario.fee / 100,
-    inflationRate: scenario.vehicle === "stocks" && scenario.inflationEnabled ? scenario.inflationRate / 100 : 0,
+    inflationRate: scenario.inflationEnabled ? scenario.inflationRate / 100 : 0,
   };
 }
 

@@ -29,7 +29,14 @@ function SavingsPage() {
   const chart = savingsChart(scenario, projection).map((point) => ({
     year: point.year,
     balance: point.balance,
+    real: point.real,
   }));
+  const series = scenario.inflationEnabled
+    ? [
+        { dataKey: "balance", label: "Nominal balance", color: "#0f6e62" },
+        { dataKey: "real", label: "Today's euros", color: "#35557a" },
+      ]
+    : [{ dataKey: "balance", label: "Balance", color: "#0f6e62" }];
 
   return (
     <>
@@ -51,9 +58,19 @@ function SavingsPage() {
               ...(scenario.taxEnabled
                 ? [{ label: "Tax on interest", value: formatEur(projection.totalTax), hint: "Paid from the account" }]
                 : []),
+              ...(scenario.inflationEnabled
+                ? [
+                    {
+                      label: "In today's euros",
+                      value: formatEur(projection.finalRealBalance),
+                      tone: "text-real",
+                      hint: "Purchasing power at the end",
+                    },
+                  ]
+                : []),
             ]}
           />
-          <GrowthChart data={chart} series={[{ dataKey: "balance", label: "Balance", color: "#0f6e62" }]} label="Growth" />
+          <GrowthChart data={chart} series={series} label="Growth" />
           <YearTable
             rows={projection.rows}
             caption="Savings balance at the end of each year"
@@ -70,6 +87,16 @@ function SavingsPage() {
                 ? [{ id: "tax", header: "Tax", align: "right" as const, cell: (row: (typeof projection.rows)[number]) => formatEur(row.tax) }]
                 : []),
               { id: "balance", header: "End balance", align: "right", cell: (row) => formatEur(row.endBalance) },
+              ...(scenario.inflationEnabled
+                ? [
+                    {
+                      id: "real",
+                      header: "Today's euros",
+                      align: "right" as const,
+                      cell: (row: (typeof projection.rows)[number]) => formatEur(row.realEndBalance),
+                    },
+                  ]
+                : []),
             ]}
           />
         </div>

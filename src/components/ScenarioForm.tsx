@@ -94,15 +94,22 @@ export function ScenarioForm({
         <Fieldset title="Stock assumptions" description="A constant expected return, after the fund fee.">
           <NumberField form={form} name="expectedReturn" label="Expected yearly return" suffix="%" />
           <NumberField form={form} name="fee" label="Annual fund fee" suffix="%" hint="Charged on assets through the year." />
-          <ToggleField
-            form={form}
-            name="inflationEnabled"
-            label="Show today's euros"
-            hint="Restates the stock balance after inflation. The nominal balance stays the same."
-          />
-          <NumberField form={form} name="inflationRate" label="Inflation" suffix="%" hint="Used only while today's euros are on." />
         </Fieldset>
       ) : null}
+
+      <Fieldset
+        className={mode === "compare" ? "lg:col-span-3" : undefined}
+        title="Inflation"
+        description="One rate for savings and for stocks."
+      >
+        <ToggleField
+          form={form}
+          name="inflationEnabled"
+          label="Show today's euros"
+          hint="Restates every year-end balance in today's purchasing power. Interest, return, fees, and the nominal balance stay the same."
+        />
+        <NumberField form={form} name="inflationRate" label="Inflation" suffix="%" hint="Used only while today's euros are on." />
+      </Fieldset>
 
       <details className={`rounded-xl bg-[#f7f2e9] px-3 py-2 text-sm text-muted ${mode === "compare" ? "lg:col-span-3" : ""}`}>
         <summary className="cursor-pointer font-medium text-ink">How the numbers are built</summary>
@@ -120,6 +127,10 @@ export function ScenarioForm({
               no top-ups, one year multiplies the balance by (1 + return) × (1 − fee).
             </p>
           ) : null}
+          <p>
+            The interest rate and the expected return are nominal. When today's euros are on, each year-end balance is
+            divided by (1 + inflation) raised to the year. Contributions, interest, tax, and fees stay in nominal euros.
+          </p>
         </div>
       </details>
     </form>
@@ -129,14 +140,16 @@ export function ScenarioForm({
 function Fieldset({
   title,
   description,
+  className,
   children,
 }: {
   title: string;
   description: string;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <fieldset className="flex flex-col gap-4">
+    <fieldset className={className ? `flex flex-col gap-4 ${className}` : "flex flex-col gap-4"}>
       <legend className="mb-1">
         <span className="block font-display text-xl text-ink">{title}</span>
         <span className="block text-sm text-muted">{description}</span>

@@ -105,7 +105,7 @@ export function GoalForm({
           label="Account"
           options={[
             { value: "savings", title: "Savings", hint: "Interest, compounding, and optional tax on interest." },
-            { value: "stocks", title: "Stocks", hint: "Expected return, fund fee, and optional inflation." },
+            { value: "stocks", title: "Stocks", hint: "Expected return and an annual fund fee." },
           ]}
         />
         {values.vehicle === "savings" ? (
@@ -124,15 +124,15 @@ export function GoalForm({
           <>
             <NumberField form={form} name="expectedReturn" label="Expected yearly return" suffix="%" />
             <NumberField form={form} name="fee" label="Annual fund fee" suffix="%" hint="Charged on assets through the year." />
-            <ToggleField
-              form={form}
-              name="inflationEnabled"
-              label="Target is in today's euros"
-              hint="The target keeps today's purchasing power. Top-ups are still paid in future euros."
-            />
-            <NumberField form={form} name="inflationRate" label="Inflation" suffix="%" hint="Used only while today's euros are on." />
           </>
         )}
+        <ToggleField
+          form={form}
+          name="inflationEnabled"
+          label="Target is in today's euros"
+          hint="The amount you typed keeps today's purchasing power, for savings and for stocks. Top-ups are still paid in future euros."
+        />
+        <NumberField form={form} name="inflationRate" label="Inflation" suffix="%" hint="Used only while today's euros are on." />
       </fieldset>
     </form>
   );

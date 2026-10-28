@@ -26,8 +26,10 @@ interface CompareRow {
   year: number;
   savings: number;
   stocks: number;
+  savingsReal: number;
   stocksReal: number;
   gap: number;
+  gapReal: number;
 }
 
 function ComparePage() {
@@ -41,8 +43,10 @@ function ComparePage() {
       year: row.year,
       savings: row.endBalance,
       stocks: stocks.endBalance,
+      savingsReal: row.realEndBalance,
       stocksReal: stocks.realEndBalance,
       gap: stocks.endBalance - row.endBalance,
+      gapReal: stocks.realEndBalance - row.realEndBalance,
     };
   });
   const difference = comparison.nominalDifference;
@@ -51,7 +55,10 @@ function ComparePage() {
     { dataKey: "savings", label: "Savings", color: "#0f6e62" },
     { dataKey: "stocks", label: "Stocks", color: "#b4532a" },
     ...(scenario.inflationEnabled
-      ? [{ dataKey: "stocksReal", label: "Stocks in today's euros", color: "#35557a" }]
+      ? [
+          { dataKey: "savingsReal", label: "Savings in today's euros", color: "#1c1814" },
+          { dataKey: "stocksReal", label: "Stocks in today's euros", color: "#35557a" },
+        ]
       : []),
   ];
 
@@ -60,7 +67,7 @@ function ComparePage() {
       <PageIntro
         eyebrow="Compare"
         title="Same deposits, two paths"
-        lede="Balance, top-ups, and years are shared. Each path keeps its own rate, fee, and tax."
+        lede="Balance, top-ups, years, and inflation are shared. Each path keeps its own rate, fee, and tax."
       />
       <div className="flex flex-col gap-6">
         <section className="rounded-2xl border border-line bg-card p-4 sm:p-5">
@@ -78,10 +85,15 @@ function ComparePage() {
             ...(scenario.inflationEnabled
               ? [
                   {
+                    label: "Savings in today's euros",
+                    value: formatEur(comparison.savings.finalRealBalance),
+                    tone: "text-savings",
+                  },
+                  {
                     label: "Stocks in today's euros",
                     value: formatEur(comparison.stocks.finalRealBalance),
                     tone: "text-real",
-                    hint: `Gap versus savings: ${formatSignedEur(comparison.realDifference)}`,
+                    hint: `Gap versus savings, in today's euros: ${formatSignedEur(comparison.realDifference)}`,
                   },
                 ]
               : []),
@@ -98,7 +110,13 @@ function ComparePage() {
             ...(scenario.inflationEnabled
               ? [
                   {
-                    id: "real",
+                    id: "savingsReal",
+                    header: "Savings today",
+                    align: "right" as const,
+                    cell: (row: CompareRow) => formatEur(row.savingsReal),
+                  },
+                  {
+                    id: "stocksReal",
                     header: "Stocks today",
                     align: "right" as const,
                     cell: (row: CompareRow) => formatEur(row.stocksReal),
@@ -106,6 +124,16 @@ function ComparePage() {
                 ]
               : []),
             { id: "gap", header: "Gap", align: "right", cell: (row) => formatSignedEur(row.gap) },
+            ...(scenario.inflationEnabled
+              ? [
+                  {
+                    id: "gapReal",
+                    header: "Gap today",
+                    align: "right" as const,
+                    cell: (row: CompareRow) => formatSignedEur(row.gapReal),
+                  },
+                ]
+              : []),
           ]}
         />
       </div>
