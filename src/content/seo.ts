@@ -64,7 +64,8 @@ export const seoPages: readonly SeoPage[] = [
         heading: "What you can calculate",
         paragraphs: [
           "Savings compounds a balance with regular top-ups, an annual interest rate, and a compounding frequency. Tax on interest is optional.",
-          "Stocks uses an expected yearly return and an annual fund fee. Inflation can restate the result in today's euros.",
+          "Stocks uses an expected yearly return and an annual fund fee.",
+          "Inflation is one switch and one rate for both. When it is on, each year-end balance is restated in today's euros. The rates you type stay nominal.",
           "Compare runs both paths with the same deposits and shows the gap at the end.",
           "Goal solves the monthly top-up for a target final balance or a target net growth.",
         ],
@@ -94,7 +95,7 @@ export const seoPages: readonly SeoPage[] = [
     file: "/savings/index.html",
     title: "Compound interest calculator with monthly deposits",
     description:
-      "See how a euro savings balance grows with regular top-ups, compounding, and optional tax on interest. A worked example uses €10,000 and €200 a month.",
+      "See how a euro savings balance grows with regular top-ups, compounding, optional tax on interest, and optional inflation. A worked example uses €10,000 and €200 a month.",
     eyebrow: "Savings",
     h1: "Compound a savings balance",
     lede: "See a final balance, the money you put in, and the interest that built on top of it.",
@@ -105,6 +106,7 @@ export const seoPages: readonly SeoPage[] = [
           "You enter the current balance, a regular top-up, whether that top-up is monthly or yearly, an annual interest rate, how often interest is credited, and the number of years. Tax is off unless you turn it on.",
           "Each top-up is deposited at the start of the month or year. It earns interest only for the time it has been in the account. Interest is credited at the compounding frequency: annually, semiannually, quarterly, monthly, or daily. Daily mode uses a 365-day year and does not add a leap day.",
           "When tax is on, it is a flat percentage of positive interest only. The default 30% matches the lower Finnish capital-income tax rate. The higher 34% bracket is not modeled, and a negative rate is not taxed.",
+          "Inflation is off unless you turn it on. The interest rate stays the nominal rate you typed. Inflation divides each year-end balance by (1 + inflation)^year so you can read purchasing power in today's euros. It uses the same rate and the same switch as the investment calculator.",
         ],
       },
       {
@@ -112,12 +114,13 @@ export const seoPages: readonly SeoPage[] = [
         paragraphs: [
           "Inside one compounding period the interest base is the balance at the start of the period plus each top-up multiplied by the fraction of the period it is present. Interest equals that base times the periodic rate. After tax, the balance increases by interest minus tax.",
           "With no tax and monthly compounding, a starting balance P and a monthly top-up C at monthly rate i for N months ends at P×(1+i)^N + C×(1+i)×((1+i)^N−1)/i. That is the annuity-due form, because the deposit happens before that month's interest.",
+          "The real balance at year t is that nominal balance divided by (1 + inflation)^t. A zero inflation rate, or the switch turned off, leaves the real balance equal to the nominal balance.",
         ],
       },
       {
         heading: "A worked example",
         paragraphs: [
-          `Defaults: ${money(defaultScenario.balance)} already saved, ${money(defaultScenario.contribution)} added at the start of each month, ${defaultScenario.savingsRate}% interest compounded monthly, no tax, ${defaultScenario.years} years.`,
+          `Defaults: ${money(defaultScenario.balance)} already saved, ${money(defaultScenario.contribution)} added at the start of each month, ${defaultScenario.savingsRate}% interest compounded monthly, no tax, inflation off, ${defaultScenario.years} years.`,
           `The balance ends at ${money(savingsExample.finalBalance)}. You contributed ${money(savingsExample.totalContributions)} in total, of which ${money(savingsExample.totalGain)} is interest.`,
         ],
       },
@@ -136,6 +139,11 @@ export const seoPages: readonly SeoPage[] = [
         question: "What if the interest rate is zero?",
         answer: "The balance equals what you put in. No interest is credited and no tax is charged.",
       },
+      {
+        question: "What does inflation change?",
+        answer:
+          "Only the 'today's euros' series. Interest is still credited at the nominal rate, and the nominal ending balance is unchanged. The real value at year t is the nominal balance divided by (1 + inflation)^t. The investment calculator uses this same rate and switch.",
+      },
     ],
   },
   {
@@ -151,8 +159,8 @@ export const seoPages: readonly SeoPage[] = [
       {
         heading: "How the stock calculator works",
         paragraphs: [
-          "You enter the current balance, a regular top-up, an expected yearly return, an annual fund or management fee, and the number of years. Inflation is optional.",
-          "The expected return compounds monthly. The fee is an annual charge on assets, spread evenly through the year. With no top-ups, one year multiplies the balance by (1 + return) × (1 − fee).",
+          "You enter the current balance, a regular top-up, an expected yearly return, an annual fund or management fee, and the number of years. Inflation is optional and uses the same switch and rate as the savings calculator.",
+          "The expected return compounds monthly. The fee is an annual charge on assets, spread evenly through the year. With no top-ups, one year multiplies the balance by (1 + return) × (1 − fee). The expected return is nominal.",
           "Inflation does not change the nominal balance. It divides each year-end balance by (1 + inflation)^year so you can read purchasing power in today's euros.",
         ],
       },
@@ -180,7 +188,7 @@ export const seoPages: readonly SeoPage[] = [
       {
         question: "What does inflation change?",
         answer:
-          "Only the 'today's euros' series. The nominal ending balance is unchanged. The real value at year t is the nominal balance divided by (1 + inflation)^t.",
+          "Only the 'today's euros' series. The nominal ending balance is unchanged. The real value at year t is the nominal balance divided by (1 + inflation)^t. Savings uses the same rule.",
       },
       {
         question: "Is a past market return a promise?",
@@ -193,22 +201,22 @@ export const seoPages: readonly SeoPage[] = [
     file: "/compare/index.html",
     title: "Savings account vs investing calculator",
     description:
-      "Compare a savings balance and an investment that use the same deposits. See both ending amounts and the gap after interest, tax, and fund fees.",
+      "Compare a savings balance and an investment that use the same deposits. See both ending amounts, the gap, and an optional inflation adjustment applied to both.",
     eyebrow: "Compare",
     h1: "Same deposits, two paths",
-    lede: "Balance, top-ups, and years are shared. Each path keeps its own rate, fee, and tax.",
+    lede: "Balance, top-ups, years, and inflation are shared. Each path keeps its own rate, fee, and tax.",
     sections: [
       {
         heading: "How the comparison works",
         paragraphs: [
-          "The shared inputs are the current balance, the top-up, how often you add it, and the number of years. The savings path then uses its interest rate, compounding frequency, and optional tax. The stock path uses its expected return, fund fee, and optional inflation.",
-          "Both lines use the same deposit timing as the single calculators. When inflation is on, a third line shows the investment in today's euros.",
+          "The shared inputs are the current balance, the top-up, how often you add it, the number of years, and inflation. The savings path then uses its interest rate, compounding frequency, and optional tax. The stock path uses its expected return and fund fee.",
+          "Both lines use the same deposit timing as the single calculators. When inflation is on, each path also has a line in today's euros.",
         ],
       },
       {
         heading: "Formula",
         paragraphs: [
-          "Each path uses the same formula as its own calculator. The gap is the stock ending balance minus the savings ending balance. A positive gap means the investment finished higher under the rates you typed.",
+          "Each path uses the same formula as its own calculator. The nominal gap is the stock ending balance minus the savings ending balance. The real gap subtracts the two balances after the same inflation adjustment. A positive gap means the investment finished higher under the rates you typed.",
         ],
       },
       {
@@ -232,7 +240,7 @@ export const seoPages: readonly SeoPage[] = [
       {
         question: "Which balance is the gap based on?",
         answer:
-          "The headline gap is nominal stocks minus nominal savings. Inflation, when enabled, is shown as an extra stock series and does not change the savings balance.",
+          "The headline gap is nominal stocks minus nominal savings. When inflation is on, both balances are also shown in today's euros, and the real gap uses those two figures.",
       },
     ],
   },
@@ -250,7 +258,7 @@ export const seoPages: readonly SeoPage[] = [
         heading: "How the goal calculator works",
         paragraphs: [
           "You choose a target amount, whether that amount is the final balance or the net growth on top of deposits, and a horizon in whole years or as a date. A date is counted in whole months from today.",
-          "The account is either a savings balance (interest, compounding, optional tax) or an investment (expected return, fund fee, optional inflation). The solver uses the same deposit timing and the same net-of-tax, net-of-fee growth as the other calculators.",
+          "The account is either a savings balance (interest, compounding, optional tax) or an investment (expected return and fund fee). Inflation is optional for either account. The solver uses the same deposit timing and the same net-of-tax, net-of-fee growth as the other calculators.",
           "The ending value is linear in the starting balance and the monthly top-up: final = alpha × balance + beta × monthly. Alpha and beta are the closed form of that monthly recurrence. The payment is rounded up to the next cent.",
         ],
       },
@@ -259,7 +267,7 @@ export const seoPages: readonly SeoPage[] = [
         paragraphs: [
           "For a final-balance target, monthly = (target − alpha × balance) / beta, then rounded up to the next cent. If the balance already reaches the target with no further top-ups, the monthly amount is zero.",
           "For a net-growth target, the goal is ending balance minus contributions. If extra deposits cannot increase that growth, because the rate is zero or fees dominate, the goal is reported as unreachable.",
-          "When the stock target is in today's euros, the nominal target is the amount you typed multiplied by (1 + inflation)^(years).",
+          "When the target is in today's euros, the nominal target is the amount you typed multiplied by (1 + inflation)^(years). That rule is the same for savings and for stocks. Top-ups are still paid in future euros.",
         ],
       },
       {
