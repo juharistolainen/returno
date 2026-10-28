@@ -6,6 +6,7 @@ import { SeoBlock } from "../components/SeoBlock.tsx";
 import { ScenarioForm } from "../components/ScenarioForm.tsx";
 import { Summary } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
+import { compareColumnHeader, compareYearColumnIds, type CompareColumnId } from "../lib/compare-columns.ts";
 import { formatEur, formatSignedEur } from "../lib/format.ts";
 import { compareInflationCopy, lostToInflation } from "../lib/inflation-copy.ts";
 import { requirePage } from "../content/seo.ts";
@@ -118,41 +119,35 @@ function ComparePage() {
         <YearTable
           rows={rows}
           caption="Savings and stock balances at the end of each year"
-          columns={[
-            { id: "year", header: "Year", align: "left", cell: (row) => String(row.year) },
-            { id: "savings", header: "Savings", align: "right", cell: (row) => formatEur(row.savings) },
-            { id: "stocks", header: "Stocks", align: "right", cell: (row) => formatEur(row.stocks) },
-            ...(scenario.inflationEnabled
-              ? [
-                  {
-                    id: "savingsReal",
-                    header: "Savings today",
-                    align: "right" as const,
-                    cell: (row: CompareRow) => formatEur(row.savingsReal),
-                  },
-                  {
-                    id: "stocksReal",
-                    header: "Stocks today",
-                    align: "right" as const,
-                    cell: (row: CompareRow) => formatEur(row.stocksReal),
-                  },
-                ]
-              : []),
-            { id: "gap", header: "Gap", align: "right", cell: (row) => formatSignedEur(row.gap) },
-            ...(scenario.inflationEnabled
-              ? [
-                  {
-                    id: "gapReal",
-                    header: "Gap today",
-                    align: "right" as const,
-                    cell: (row: CompareRow) => formatSignedEur(row.gapReal),
-                  },
-                ]
-              : []),
-          ]}
+          columns={compareYearColumnIds(scenario.inflationEnabled).map((id) => compareColumn(id))}
         />
       </div>
       <SeoBlock page={compareSeo} />
     </>
   );
+}
+
+function compareColumn(id: CompareColumnId): {
+  id: string;
+  header: string;
+  align: "left" | "right";
+  cell: (row: CompareRow) => string;
+} {
+  const header = compareColumnHeader(id);
+  switch (id) {
+    case "year":
+      return { id, header, align: "left", cell: (row) => String(row.year) };
+    case "savings":
+      return { id, header, align: "right", cell: (row) => formatEur(row.savings) };
+    case "stocks":
+      return { id, header, align: "right", cell: (row) => formatEur(row.stocks) };
+    case "gap":
+      return { id, header, align: "right", cell: (row) => formatSignedEur(row.gap) };
+    case "savingsReal":
+      return { id, header, align: "right", cell: (row) => formatEur(row.savingsReal) };
+    case "stocksReal":
+      return { id, header, align: "right", cell: (row) => formatEur(row.stocksReal) };
+    case "gapReal":
+      return { id, header, align: "right", cell: (row) => formatSignedEur(row.gapReal) };
+  }
 }
