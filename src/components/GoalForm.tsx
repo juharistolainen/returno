@@ -116,7 +116,7 @@ export function GoalForm({
               form={form}
               name="taxEnabled"
               label="Tax the interest"
-              hint="Flat tax on positive interest. 30% is the lower Finnish capital-income rate."
+              hint="Applies the tax rate to positive interest as it is credited."
             />
             <NumberField form={form} name="taxRate" label="Tax rate" suffix="%" hint="Used only while tax is on." />
           </>

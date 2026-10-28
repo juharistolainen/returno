@@ -84,7 +84,7 @@ export function ScenarioForm({
             form={form}
             name="taxEnabled"
             label="Tax the interest"
-            hint="Flat tax on positive interest. 30% is the lower Finnish capital-income rate. The higher bracket is not modeled."
+            hint="Applies the tax rate to positive interest as it is credited."
           />
           <NumberField form={form} name="taxRate" label="Tax rate" suffix="%" hint="Used only while tax is on." />
         </Fieldset>
@@ -117,7 +117,7 @@ export function ScenarioForm({
           {mode !== "stocks" ? (
             <p>
               Savings top-ups earn interest only for the time they have been deposited. Interest is credited at the
-              compounding frequency. Daily compounding uses a 365-day year. Tax, when on, takes a flat share of positive
+              compounding frequency. Daily compounding uses a 365-day year. Tax, when on, applies the tax rate to positive
               interest in the period it is credited.
             </p>
           ) : null}

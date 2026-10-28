@@ -65,7 +65,7 @@ Checked with curl, GitHub raw files and a read-only Cloudflare API GET on 27 Oct
 | Home page | `/` does `throw redirect({to: "/savings"})` in `router.tsx`, a client-side redirect. The root URL has no content of its own. | Weak | Fixed. `src/routes/home.tsx`. |
 | Open Graph, Twitter | None. Shared links show no preview image or description. | Missing | Fixed. One shared `/og.png`. |
 | Structured data | No JSON-LD. | Missing | Fixed. `WebApplication` and `FAQPage`. |
-| Language | `lang="en"`, English only. No Finnish version, no hreflang, although the tax default (30%) is Finnish. | Gap | Open. |
+| Language | `lang="en"`, English only. No Finnish version, no hreflang. The interest-tax control is a rate you type, default 30%. | Gap | Open. |
 | Duplicate hosts | returno.riussi.workers.dev (200) and juharistolainen.github.io/returno/ (200) serve the same app. returno.pages.dev gives 522. www has no DNS record. | Fix | Fixed. Other hosts get a 301 to returno.site, `*.workers.dev` gets `X-Robots-Tag: noindex`, and GitHub Pages is unpublished. |
 | HTTPS | Cloudflare Always Use HTTPS is off. HSTS not set. Port 80 could not be tested. | Fix | Fixed. Always Use HTTPS is on, minimum TLS 1.2, and the Worker sends HSTS. |
 | Cloudflare bots | Free plan. Bot Fight Mode off; AI bot blocking, AI Crawl Control blocks (search, agent, training) and managed robots.txt all off. GPTBot, ClaudeBot, PerplexityBot, OAI-SearchBot, Googlebot all got 200. | OK | Not checked again. |

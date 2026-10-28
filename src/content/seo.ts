@@ -105,7 +105,7 @@ export const seoPages: readonly SeoPage[] = [
         paragraphs: [
           "You enter the current balance, a regular top-up, whether that top-up is monthly or yearly, an annual interest rate, how often interest is credited, and the number of years. Tax is off unless you turn it on.",
           "Each top-up is deposited at the start of the month or year. It earns interest only for the time it has been in the account. Interest is credited at the compounding frequency: annually, semiannually, quarterly, monthly, or daily. Daily mode uses a 365-day year and does not add a leap day.",
-          "When tax is on, it is a flat percentage of positive interest only. The default 30% matches the lower Finnish capital-income tax rate. The higher 34% bracket is not modeled, and a negative rate is not taxed.",
+          "When tax is on, it is a flat percentage of positive interest only, applied as the interest is credited. The default rate is 30%. You can change it. A negative rate is not taxed.",
           "Inflation is off unless you turn it on. The interest rate stays the nominal rate you typed. Inflation divides each year-end balance by (1 + inflation)^year so you can read purchasing power in today's euros. It uses the same rate and the same switch as the investment calculator.",
         ],
       },
@@ -133,7 +133,7 @@ export const seoPages: readonly SeoPage[] = [
       {
         question: "Is the 30% tax always applied?",
         answer:
-          "No. Tax is off until you enable it. When it is on, the default rate is 30% of positive interest. You can change the rate. Returno does not apply the Finnish 34% bracket.",
+          "No. Tax is off until you enable it. When it is on, the rate you type is applied to positive interest as it is credited. The default is 30%. You can change it.",
       },
       {
         question: "What if the interest rate is zero?",
