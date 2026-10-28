@@ -1,11 +1,13 @@
 import { createRoute } from "@tanstack/react-router";
 import { GrowthChart } from "../components/GrowthChart.tsx";
+import { InflationNote } from "../components/InflationNote.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
 import { SeoBlock } from "../components/SeoBlock.tsx";
 import { ScenarioForm } from "../components/ScenarioForm.tsx";
 import { Summary } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
 import { formatEur, formatSignedEur } from "../lib/format.ts";
+import { compareInflationCopy, lostToInflation } from "../lib/inflation-copy.ts";
 import { requirePage } from "../content/seo.ts";
 import { comparisonChart, projectComparison } from "../lib/project.ts";
 import { calculatorSearch, validateSearch } from "../lib/search.ts";
@@ -95,10 +97,23 @@ function ComparePage() {
                     tone: "text-real",
                     hint: `Gap versus savings, in today's euros: ${formatSignedEur(comparison.realDifference)}`,
                   },
+                  {
+                    label: "Savings lost to inflation",
+                    value: formatEur(lostToInflation(comparison.savings.finalBalance, comparison.savings.finalRealBalance)),
+                    hint: "Nominal ending balance minus today's euros",
+                  },
+                  {
+                    label: "Stocks lost to inflation",
+                    value: formatEur(lostToInflation(comparison.stocks.finalBalance, comparison.stocks.finalRealBalance)),
+                    hint: "Nominal ending balance minus today's euros",
+                  },
                 ]
               : []),
           ]}
         />
+        {scenario.inflationEnabled ? (
+          <InflationNote text={compareInflationCopy(comparison.nominalDifference, comparison.realDifference)} />
+        ) : null}
         <GrowthChart data={chart} series={series} label="Both paths" />
         <YearTable
           rows={rows}

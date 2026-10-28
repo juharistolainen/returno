@@ -1,12 +1,14 @@
 import { createRoute } from "@tanstack/react-router";
 import { GoalForm } from "../components/GoalForm.tsx";
 import { GrowthChart } from "../components/GrowthChart.tsx";
+import { InflationNote } from "../components/InflationNote.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
 import { SeoBlock } from "../components/SeoBlock.tsx";
 import { Summary } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
 import { requirePage } from "../content/seo.ts";
 import { formatChartYear, formatEur } from "../lib/format.ts";
+import { goalInflationCopy, lostToInflation } from "../lib/inflation-copy.ts";
 import { goalChart, monthsUntil, planGoal, type GoalInput } from "../lib/goal.ts";
 import { sessionToday } from "../lib/session-today.ts";
 import { calculatorSearch, validateSearch } from "../lib/search.ts";
@@ -27,7 +29,9 @@ export const goalRoute = createRoute({
 function GoalPage() {
   const scenario = useShownScenario();
   const update = useReplaceScenario(scenario);
-  const plan = planGoal(goalInput(scenario, sessionToday));
+  const input = goalInput(scenario, sessionToday);
+  const plan = planGoal(input);
+  const planWithoutInflation = scenario.inflationEnabled ? planGoal({ ...input, inflationRate: 0 }) : null;
   const chart = goalChart(scenario.balance, plan.projection).map((point) => ({
     year: point.year,
     balance: point.balance,
@@ -71,6 +75,16 @@ function GoalPage() {
               },
             ]}
           />
+          {planWithoutInflation ? (
+            <InflationNote
+              text={goalInflationCopy(
+                plan.projection.finalRealBalance,
+                plan.projection.finalBalance,
+                plan.monthlyContribution,
+                planWithoutInflation.monthlyContribution,
+              )}
+            />
+          ) : null}
           <GrowthChart data={chart} series={series} label="Path to the goal" />
           <YearTable
             rows={plan.projection.rows}
@@ -98,6 +112,13 @@ function GoalPage() {
                       header: "Today's euros",
                       align: "right" as const,
                       cell: (row: (typeof plan.projection.rows)[number]) => formatEur(row.realEndBalance),
+                    },
+                    {
+                      id: "lost",
+                      header: "Lost so far",
+                      align: "right" as const,
+                      cell: (row: (typeof plan.projection.rows)[number]) =>
+                        formatEur(lostToInflation(row.endBalance, row.realEndBalance)),
                     },
                   ]
                 : []),

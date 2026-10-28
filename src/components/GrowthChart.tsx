@@ -1,5 +1,6 @@
-import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatChartYear, formatEur, formatEurCompact } from "../lib/format.ts";
+import { chartShowsInflationBand } from "../lib/inflation-copy.ts";
 
 interface Series {
   dataKey: string;
@@ -16,7 +17,15 @@ export function GrowthChart({
   series: readonly Series[];
   label: string;
 }) {
-  const points = data.map((point) => ({ ...point })) as Record<string, number>[];
+  const showBand = chartShowsInflationBand(series.map((item) => item.dataKey));
+  const points = data.map((point) => {
+    const row = { ...point } as Record<string, number>;
+    if (showBand) {
+      row.inflBase = Number(row.real);
+      row.inflGap = Math.max(0, Number(row.balance) - Number(row.real));
+    }
+    return row;
+  });
   const multiple = series.length > 1;
 
   return (
@@ -25,7 +34,7 @@ export function GrowthChart({
       <div className="mt-3 h-64 w-full min-w-0 sm:h-80">
         <ResponsiveContainer width="100%" height="100%">
           {multiple ? (
-            <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <ComposedChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke="#eadfcd" vertical={false} />
               <XAxis
                 dataKey="year"
@@ -43,6 +52,12 @@ export function GrowthChart({
                 domain={[0, "auto"]}
               />
               <Tooltip content={<ChartTooltip />} />
+              {showBand ? (
+                <>
+                  <Area type="monotone" dataKey="inflBase" name="" stackId="band" stroke="none" fill="transparent" isAnimationActive={false} legendType="none" tooltipType="none" />
+                  <Area type="monotone" dataKey="inflGap" name="" stackId="band" stroke="none" fill="#35557a" fillOpacity={0.16} isAnimationActive={false} legendType="none" tooltipType="none" />
+                </>
+              ) : null}
               {series.map((item) => (
                 <Line
                   key={item.dataKey}
@@ -55,7 +70,7 @@ export function GrowthChart({
                   isAnimationActive={false}
                 />
               ))}
-            </LineChart>
+            </ComposedChart>
           ) : (
             <AreaChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke="#eadfcd" vertical={false} />
@@ -100,6 +115,12 @@ export function GrowthChart({
             {item.label}
           </li>
         ))}
+        {showBand ? (
+          <li className="flex items-center gap-2">
+            <span className="inline-block size-2.5 rounded-sm bg-[#35557a]/20" />
+            Lost to inflation
+          </li>
+        ) : null}
       </ul>
     </section>
   );
@@ -118,11 +139,13 @@ function ChartTooltip({
   return (
     <div className="rounded-xl border border-line bg-card px-3 py-2 text-sm shadow-sm">
       <p className="font-medium">Year {label}</p>
-      {payload.map((entry) => (
-        <p key={String(entry.dataKey)} style={{ color: entry.color }}>
-          {entry.name}: {formatEur(Number(entry.value))}
-        </p>
-      ))}
+      {payload
+        .filter((entry) => entry.name && entry.dataKey !== "inflGap" && entry.dataKey !== "inflBase")
+        .map((entry) => (
+          <p key={String(entry.dataKey)} style={{ color: entry.color }}>
+            {entry.name}: {formatEur(Number(entry.value))}
+          </p>
+        ))}
     </div>
   );
 }

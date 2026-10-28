@@ -1,11 +1,13 @@
 import { createRoute } from "@tanstack/react-router";
 import { GrowthChart } from "../components/GrowthChart.tsx";
+import { InflationNote } from "../components/InflationNote.tsx";
 import { PageIntro } from "../components/PageIntro.tsx";
 import { SeoBlock } from "../components/SeoBlock.tsx";
 import { ScenarioForm } from "../components/ScenarioForm.tsx";
 import { Summary } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
 import { formatEur } from "../lib/format.ts";
+import { balanceInflationCopy, lostToInflation } from "../lib/inflation-copy.ts";
 import { requirePage } from "../content/seo.ts";
 import { projectSavingsScenario, savingsChart } from "../lib/project.ts";
 import { calculatorSearch, validateSearch } from "../lib/search.ts";
@@ -66,10 +68,24 @@ function SavingsPage() {
                       tone: "text-real",
                       hint: "Purchasing power at the end",
                     },
+                    {
+                      label: "Lost to inflation",
+                      value: formatEur(lostToInflation(projection.finalBalance, projection.finalRealBalance)),
+                      hint: "Nominal ending balance minus today's euros",
+                    },
                   ]
                 : []),
             ]}
           />
+          {scenario.inflationEnabled ? (
+            <InflationNote
+              text={balanceInflationCopy(
+                scenario.inflationRate,
+                projection.finalRealBalance,
+                lostToInflation(projection.finalBalance, projection.finalRealBalance),
+              )}
+            />
+          ) : null}
           <GrowthChart data={chart} series={series} label="Growth" />
           <YearTable
             rows={projection.rows}
@@ -94,6 +110,12 @@ function SavingsPage() {
                       header: "Today's euros",
                       align: "right" as const,
                       cell: (row: (typeof projection.rows)[number]) => formatEur(row.realEndBalance),
+                    },
+                    {
+                      id: "lost",
+                      header: "Lost so far",
+                      align: "right" as const,
+                      cell: (row: (typeof projection.rows)[number]) => formatEur(lostToInflation(row.endBalance, row.realEndBalance)),
                     },
                   ]
                 : []),
