@@ -8,6 +8,7 @@ import { Summary, SummaryColumns, type Stat } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
 import {
   compareColumnHeader,
+  compareLeadLabel,
   compareSummaryKeys,
   compareYearColumnIds,
   type CompareColumnId,
@@ -59,7 +60,6 @@ function ComparePage() {
     };
   });
   const difference = comparison.nominalDifference;
-  const ahead = difference > 0 ? "Stocks end ahead" : difference < 0 ? "Savings end ahead" : "They end even";
   const summaryStats: Record<CompareSummaryKey, Stat> = {
     savings: { label: "Savings", value: formatEur(comparison.savings.finalBalance), tone: "text-savings" },
     savingsReal: {
@@ -77,14 +77,18 @@ function ComparePage() {
       label: "Stocks in today's euros",
       value: formatEur(comparison.stocks.finalRealBalance),
       tone: "text-real",
-      hint: `Gap versus savings, in today's euros: ${formatSignedEur(comparison.realDifference)}`,
     },
     stocksLost: {
       label: "Stocks lost to inflation",
       value: formatEur(lostToInflation(comparison.stocks.finalBalance, comparison.stocks.finalRealBalance)),
       hint: "Nominal ending balance minus today's euros",
     },
-    lead: { label: ahead, value: formatSignedEur(difference), hint: "Nominal balance at the end" },
+    lead: { label: compareLeadLabel(difference), value: formatSignedEur(difference), hint: "Nominal balance at the end" },
+    leadReal: {
+      label: compareLeadLabel(comparison.realDifference, true),
+      value: formatSignedEur(comparison.realDifference),
+      hint: "Balance at the end, in today's euros",
+    },
   };
   const summaryGroups = compareSummaryKeys(scenario.inflationEnabled).map((keys) => keys.map((key) => summaryStats[key]));
   const series = [
