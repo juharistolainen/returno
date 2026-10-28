@@ -9,6 +9,10 @@ import {
 } from "./calc.ts";
 import type { Scenario } from "./scenario.ts";
 
+function decimalInflation(scenario: Scenario): number {
+  return scenario.inflationEnabled ? scenario.inflationRate / 100 : 0;
+}
+
 export function projectSavingsScenario(scenario: Scenario): Projection {
   return projectSavings({
     balance: scenario.balance,
@@ -18,6 +22,7 @@ export function projectSavingsScenario(scenario: Scenario): Projection {
     compounding: scenario.compounding,
     years: scenario.years,
     taxRate: scenario.taxEnabled ? scenario.taxRate / 100 : 0,
+    inflationRate: decimalInflation(scenario),
   });
 }
 
@@ -29,7 +34,7 @@ export function projectStocksScenario(scenario: Scenario): Projection {
     expectedReturn: scenario.expectedReturn / 100,
     feeRate: scenario.fee / 100,
     years: scenario.years,
-    inflationRate: scenario.inflationEnabled ? scenario.inflationRate / 100 : 0,
+    inflationRate: decimalInflation(scenario),
   });
 }
 
@@ -43,6 +48,7 @@ export function projectComparison(scenario: Scenario): Comparison {
       compounding: scenario.compounding,
       years: scenario.years,
       taxRate: scenario.taxEnabled ? scenario.taxRate / 100 : 0,
+      inflationRate: decimalInflation(scenario),
     },
     {
       balance: scenario.balance,
@@ -51,7 +57,7 @@ export function projectComparison(scenario: Scenario): Comparison {
       expectedReturn: scenario.expectedReturn / 100,
       feeRate: scenario.fee / 100,
       years: scenario.years,
-      inflationRate: scenario.inflationEnabled ? scenario.inflationRate / 100 : 0,
+      inflationRate: decimalInflation(scenario),
     },
   );
 }
@@ -64,6 +70,7 @@ export interface ComparePoint {
   year: number;
   savings: number;
   stocks: number;
+  savingsReal: number;
   stocksReal: number;
 }
 
@@ -74,6 +81,7 @@ export function comparisonChart(scenario: Scenario, comparison: Comparison): Com
     year: point.year,
     savings: point.balance,
     stocks: stockPoints[index]?.balance ?? point.balance,
+    savingsReal: point.real,
     stocksReal: stockPoints[index]?.real ?? point.real,
   }));
 }

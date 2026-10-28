@@ -8,9 +8,13 @@
  *
  * Investments grow at the expected annual return, compounded monthly, after an
  * annual fund fee applied evenly through the year. With no top-ups, one year
- * multiplies the balance by (1 + return) × (1 − fee). Inflation, when set,
- * does not change the nominal path; it only restates balances in today's euros.
+ * multiplies the balance by (1 + return) × (1 − fee).
+ *
+ * Both rates are nominal. Inflation, when set, does not change either nominal
+ * path. It restates each year-end balance in today's euros through `realValue`.
  */
+
+import { realValue } from "./inflation.ts";
 
 export type ContributionFrequency = "monthly" | "yearly";
 
@@ -31,6 +35,8 @@ export interface SavingsInput {
   years: number;
   /** Flat tax on positive interest, as a decimal. 0 disables tax. */
   taxRate: number;
+  /** Inflation rate as a decimal. 0 leaves real balances equal to nominal. */
+  inflationRate: number;
 }
 
 export interface InvestmentInput {
@@ -81,7 +87,7 @@ export interface Comparison {
   stocks: Projection;
   /** Stocks nominal ending balance minus savings ending balance. */
   nominalDifference: number;
-  /** Inflation-adjusted stock balance minus the savings ending balance. */
+  /** Inflation-adjusted stock balance minus the inflation-adjusted savings balance. */
   realDifference: number;
 }
 
@@ -145,16 +151,12 @@ function emptyProjection(balance: number): Projection {
   };
 }
 
-function realValue(nominal: number, inflationRate: number, year: number): number {
-  if (inflationRate === 0 || year === 0) return nominal;
-  return nominal / Math.pow(1 + inflationRate, year);
-}
-
 export function projectSavings(input: SavingsInput): Projection {
   requireFinite("balance", input.balance);
   requireFinite("contribution", input.contribution);
   requireFinite("annualRate", input.annualRate);
   requireFinite("taxRate", input.taxRate);
+  requireFinite("inflationRate", input.inflationRate);
   const years = wholeYears(input.years);
   if (years === 0) return emptyProjection(input.balance);
   if (input.compounding === "daily") return projectSavingsDaily(input, years);
@@ -209,14 +211,14 @@ function projectSavingsPeriodic(input: SavingsInput, years: number): Projection 
       fees: 0,
       gain,
       endBalance: balance,
-      realEndBalance: balance,
+      realEndBalance: realValue(balance, input.inflationRate, year),
       cumulativeContributions: totalContributions,
     });
   }
 
   return {
     finalBalance: balance,
-    finalRealBalance: balance,
+    finalRealBalance: rows[rows.length - 1]!.realEndBalance,
     totalContributions,
     totalGain,
     totalTax,
@@ -260,8 +262,9 @@ function projectSavingsDaily(input: SavingsInput, years: number): Projection {
     if (dayOfYear === DAYS_PER_YEAR - 1) {
       const gain = yearGross - yearTax;
       totalGain += gain;
+      const year = rows.length + 1;
       rows.push({
-        year: rows.length + 1,
+        year,
         startBalance: yearStart,
         contributions: yearContributions,
         grossInterest: yearGross,
@@ -269,7 +272,7 @@ function projectSavingsDaily(input: SavingsInput, years: number): Projection {
         fees: 0,
         gain,
         endBalance: balance,
-        realEndBalance: balance,
+        realEndBalance: realValue(balance, input.inflationRate, year),
         cumulativeContributions: totalContributions,
       });
       yearStart = balance;
@@ -281,7 +284,7 @@ function projectSavingsDaily(input: SavingsInput, years: number): Projection {
 
   return {
     finalBalance: balance,
-    finalRealBalance: balance,
+    finalRealBalance: rows[rows.length - 1]!.realEndBalance,
     totalContributions,
     totalGain,
     totalTax,
@@ -371,7 +374,7 @@ export function compareProjections(savings: SavingsInput, stocks: InvestmentInpu
     savings: savingsProjection,
     stocks: stocksProjection,
     nominalDifference: stocksProjection.finalBalance - savingsProjection.finalBalance,
-    realDifference: stocksProjection.finalRealBalance - savingsProjection.finalBalance,
+    realDifference: stocksProjection.finalRealBalance - savingsProjection.finalRealBalance,
   };
 }
 
