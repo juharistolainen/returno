@@ -115,7 +115,7 @@ function GoalPage() {
                     },
                     {
                       id: "lost",
-                      header: "Lost so far",
+                      header: "Lost to inflation",
                       align: "right" as const,
                       cell: (row: (typeof plan.projection.rows)[number]) =>
                         formatEur(lostToInflation(row.endBalance, row.realEndBalance)),

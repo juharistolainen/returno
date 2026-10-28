@@ -108,7 +108,7 @@ function StocksPage() {
                     },
                     {
                       id: "lost",
-                      header: "Lost so far",
+                      header: "Lost to inflation",
                       align: "right" as const,
                       cell: (row: (typeof projection.rows)[number]) => formatEur(lostToInflation(row.endBalance, row.realEndBalance)),
                     },
