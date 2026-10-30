@@ -123,6 +123,16 @@ describe("scenarioFromForm", () => {
 });
 
 describe("scenarioToSearch", () => {
+  it("round-trips the goal both mode and leaves it out of a default link", () => {
+    const both = parseScenario({ vehicle: "both" });
+    expect(both.vehicle).toBe("both");
+    expect(both.savingsRate).toBe(defaultScenario.savingsRate);
+    expect(both.expectedReturn).toBe(defaultScenario.expectedReturn);
+    expect(scenarioToSearch(both)).toEqual({ vehicle: "both" });
+    expect(scenarioToSearch(defaultScenario)).toEqual({});
+    expect(parseScenario(defaultParseSearch(defaultStringifySearch(scenarioToSearch(both))))).toEqual(both);
+  });
+
   it("emits no query string for the default scenario", () => {
     expect(scenarioToSearch(defaultScenario)).toEqual({});
     expect(defaultStringifySearch(scenarioToSearch(defaultScenario))).toBe("");

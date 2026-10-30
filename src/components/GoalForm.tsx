@@ -1,17 +1,17 @@
 import { useEffect } from "react";
 import { useForm, useStore } from "@tanstack/react-form";
 import type { CompoundingFrequency } from "../lib/calc.ts";
-import { MAX_GOAL_MONTHS, monthsUntil } from "../lib/goal.ts";
+import { MAX_GOAL_MONTHS, monthsUntil, type GoalTargetKind } from "../lib/goal.ts";
 import {
   numberFieldError,
   scenarioEqual,
   scenarioFromForm,
   scenarioToFormValues,
+  type GoalAccount,
   type HorizonMode,
   type Scenario,
   type ScenarioFormValues,
 } from "../lib/scenario.ts";
-import type { GoalTargetKind, GoalVehicle } from "../lib/goal.ts";
 
 const compoundingOptions: readonly { value: CompoundingFrequency; label: string }[] = [
   { value: "annually", label: "Annually" },
@@ -106,10 +106,12 @@ export function GoalForm({
           options={[
             { value: "savings", title: "Savings", hint: "Interest, compounding, and optional tax on interest." },
             { value: "stocks", title: "Stocks", hint: "Expected return and an annual fund fee." },
+            { value: "both", title: "Both", hint: "The monthly top-up for savings and for stocks, side by side." },
           ]}
         />
-        {values.vehicle === "savings" ? (
-          <>
+        {values.vehicle !== "stocks" ? (
+          <div className="flex flex-col gap-4">
+            {values.vehicle === "both" ? <p className="text-sm font-medium">Savings</p> : null}
             <NumberField form={form} name="savingsRate" label="Annual interest rate" suffix="%" />
             <SelectField form={form} name="compounding" label="Compounding" options={compoundingOptions} />
             <ToggleField
@@ -119,13 +121,15 @@ export function GoalForm({
               hint="Applies the tax rate to positive interest as it is credited."
             />
             <NumberField form={form} name="taxRate" label="Tax rate" suffix="%" hint="Used only while tax is on." />
-          </>
-        ) : (
-          <>
+          </div>
+        ) : null}
+        {values.vehicle !== "savings" ? (
+          <div className="flex flex-col gap-4">
+            {values.vehicle === "both" ? <p className="text-sm font-medium">Stocks</p> : null}
             <NumberField form={form} name="expectedReturn" label="Expected yearly return" suffix="%" />
             <NumberField form={form} name="fee" label="Annual fund fee" suffix="%" hint="Charged on assets through the year." />
-          </>
-        )}
+          </div>
+        ) : null}
         <ToggleField
           form={form}
           name="inflationEnabled"
@@ -282,7 +286,7 @@ function ChoiceField<Name extends "targetKind" | "horizonMode" | "vehicle">({
                     name={field.name}
                     className="mt-1 accent-savings"
                     checked={field.state.value === option.value}
-                    onChange={() => field.handleChange(option.value as GoalTargetKind & HorizonMode & GoalVehicle)}
+                    onChange={() => field.handleChange(option.value as GoalTargetKind & HorizonMode & GoalAccount)}
                   />
                   <span>
                     <span className="block text-sm font-medium">{option.title}</span>
