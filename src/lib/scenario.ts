@@ -2,6 +2,8 @@ import type { CompoundingFrequency, ContributionFrequency } from "./calc.ts";
 import type { GoalTargetKind, GoalVehicle } from "./goal.ts";
 
 export type HorizonMode = "years" | "date";
+/** Goal page account. "both" solves savings and stocks for the same goal. */
+export type GoalAccount = GoalVehicle | "both";
 
 export interface Scenario {
   balance: number;
@@ -22,7 +24,7 @@ export interface Scenario {
   targetKind: GoalTargetKind;
   horizonMode: HorizonMode;
   targetDate: string;
-  vehicle: GoalVehicle;
+  vehicle: GoalAccount;
 }
 
 export const defaultScenario: Scenario = {
@@ -48,7 +50,7 @@ export const defaultScenario: Scenario = {
 const CONTRIBUTION_FREQUENCIES: readonly ContributionFrequency[] = ["monthly", "yearly"];
 const TARGET_KINDS: readonly GoalTargetKind[] = ["balance", "growth"];
 const HORIZON_MODES: readonly HorizonMode[] = ["years", "date"];
-const VEHICLES: readonly GoalVehicle[] = ["savings", "stocks"];
+const VEHICLES: readonly GoalAccount[] = ["savings", "stocks", "both"];
 const COMPOUNDING_FREQUENCIES: readonly CompoundingFrequency[] = [
   "annually",
   "semiannually",
@@ -203,7 +205,7 @@ export interface ScenarioFormValues {
   targetKind: GoalTargetKind;
   horizonMode: HorizonMode;
   targetDate: string;
-  vehicle: GoalVehicle;
+  vehicle: GoalAccount;
 }
 
 export function scenarioToFormValues(scenario: Scenario): ScenarioFormValues {

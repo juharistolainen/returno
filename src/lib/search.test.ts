@@ -83,6 +83,17 @@ describe("calculator search urls", () => {
     expect(shownScenario(router)).toEqual(defaultScenario);
   });
 
+  it("restores the goal both mode from a shared link without default params", async () => {
+    const router = await load("/goal?vehicle=both");
+    expect(router.state.location.searchStr).toContain("vehicle=both");
+    expect(router.state.location.searchStr).not.toContain("years=");
+    expect(router.state.location.searchStr).not.toContain("balance=");
+    expect(router.state.location.searchStr).not.toContain("savingsRate=");
+    expect(shownScenario(router).vehicle).toBe("both");
+    expect(shownScenario(router).years).toBe(defaultScenario.years);
+    expect(shownScenario(router).targetAmount).toBe(defaultScenario.targetAmount);
+  });
+
   it("restores an incoming query and does not add the missing defaults", async () => {
     const router = await load("/goal?balance=2500&horizonMode=date");
     expect(router.state.location.searchStr).toContain("balance=2500");
