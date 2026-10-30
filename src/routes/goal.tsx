@@ -9,7 +9,7 @@ import { Summary } from "../components/Summary.tsx";
 import { YearTable } from "../components/YearTable.tsx";
 import { requirePage } from "../content/seo.ts";
 import { formatChartYear, formatEur } from "../lib/format.ts";
-import { compareGoals, goalSpanLabel } from "../lib/goal-compare.ts";
+import { compareGoals, goalCompareChart, goalCompareYearRows, goalSpanLabel, type GoalCompareYearRow } from "../lib/goal-compare.ts";
 import { goalInflationCopy, lostToInflation } from "../lib/inflation-copy.ts";
 import { goalChart, monthsUntil, planGoal, type GoalInput, type GoalVehicle } from "../lib/goal.ts";
 import { sessionToday } from "../lib/session-today.ts";
@@ -59,7 +59,74 @@ function BothResults({ scenario }: { scenario: Scenario }) {
     years: scenario.years,
     months: comparison.savings.months,
   });
-  return <GoalCompareResults comparison={comparison} span={span} inflationOn={scenario.inflationEnabled} />;
+  const inflationOn = scenario.inflationEnabled;
+  const rows = goalCompareYearRows(comparison);
+  const chart = goalCompareChart(scenario.balance, comparison);
+  const series = [
+    { dataKey: "savings", label: "Savings", color: "#0f6e62" },
+    { dataKey: "stocks", label: "Stocks", color: "#b4532a" },
+    ...(inflationOn
+      ? [
+          { dataKey: "savingsReal", label: "Savings in today's euros", color: "#1c1814" },
+          { dataKey: "stocksReal", label: "Stocks in today's euros", color: "#35557a" },
+        ]
+      : []),
+  ];
+
+  return (
+    <>
+      <GoalCompareResults comparison={comparison} span={span} inflationOn={inflationOn} />
+      {rows.length > 0 ? (
+        <>
+          <GrowthChart data={chart} series={series} label="Path to the goal" />
+          <YearTable
+            rows={rows}
+            caption="Savings and stock balances at the end of each year on the way to the goal"
+            columns={bothYearColumns(scenario.taxEnabled, inflationOn)}
+          />
+        </>
+      ) : null}
+    </>
+  );
+}
+
+function bothMoney(value: number | null): string {
+  return value === null ? "—" : formatEur(value);
+}
+
+function bothYearColumns(taxEnabled: boolean, inflationOn: boolean) {
+  const column = (
+    id: string,
+    header: string,
+    cell: (row: GoalCompareYearRow) => string,
+  ) => ({ id, header, align: "right" as const, cell });
+  return [
+    { id: "year", header: "Year", align: "left" as const, cell: (row: GoalCompareYearRow) => formatChartYear(row.year) },
+    column("savingsTopUps", "Savings top-ups", (row) => bothMoney(row.savingsTopUps)),
+    column("savingsGain", "Interest after tax", (row) => bothMoney(row.savingsGain)),
+    ...(taxEnabled ? [column("savingsTax", "Savings tax", (row) => bothMoney(row.savingsTax))] : []),
+    column("savingsBalance", "Savings balance", (row) => bothMoney(row.savingsBalance)),
+    column("stocksTopUps", "Stocks top-ups", (row) => bothMoney(row.stocksTopUps)),
+    column("stocksGain", "Return after fees", (row) => bothMoney(row.stocksGain)),
+    column("stocksFees", "Stocks fees", (row) => bothMoney(row.stocksFees)),
+    column("stocksBalance", "Stocks balance", (row) => bothMoney(row.stocksBalance)),
+    ...(inflationOn
+      ? [
+          column("savingsReal", "Savings today", (row) => bothMoney(row.savingsReal)),
+          column("savingsLost", "Savings lost", (row) =>
+            row.savingsBalance === null || row.savingsReal === null
+              ? "—"
+              : formatEur(lostToInflation(row.savingsBalance, row.savingsReal)),
+          ),
+          column("stocksReal", "Stocks today", (row) => bothMoney(row.stocksReal)),
+          column("stocksLost", "Stocks lost", (row) =>
+            row.stocksBalance === null || row.stocksReal === null
+              ? "—"
+              : formatEur(lostToInflation(row.stocksBalance, row.stocksReal)),
+          ),
+        ]
+      : []),
+  ];
 }
 
 function SingleResults({ scenario }: { scenario: Scenario }) {

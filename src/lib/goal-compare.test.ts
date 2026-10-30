@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { formatEur } from "./format.ts";
-import { planGoal } from "./goal.ts";
+import { goalChart, planGoal } from "./goal.ts";
 import {
   GOAL_COMPARE_CAVEAT,
   compareGoals,
+  goalCompareChart,
   goalCompareHeadline,
   goalComparePocketNote,
+  goalCompareYearRows,
   goalSpanLabel,
   type GoalCompareInput,
 } from "./goal-compare.ts";
@@ -163,6 +165,62 @@ describe("compareGoals", () => {
     expect(GOAL_COMPARE_CAVEAT).toBe(
       "Under the rates you typed. Stock returns are not guaranteed and can be lower.",
     );
+  });
+});
+
+describe("goal compare year rows and chart", () => {
+  it("matches the single-account year tables and chart points, including tax and inflation", () => {
+    const input = shared({
+      targetKind: "balance",
+      targetAmount: 80_000,
+      balance: 4_000,
+      months: 8 * 12,
+      annualRate: 0.04,
+      compounding: "monthly",
+      taxRate: 0.3,
+      expectedReturn: 0.06,
+      feeRate: 0.004,
+      inflationRate: 0.02,
+    });
+    const comparison = compareGoals(input);
+    const savings = planGoal({ ...input, vehicle: "savings" });
+    const stocks = planGoal({ ...input, vehicle: "stocks" });
+    const rows = goalCompareYearRows(comparison);
+    expect(rows).toHaveLength(savings.projection.rows.length);
+    expect(rows).toHaveLength(stocks.projection.rows.length);
+    rows.forEach((row, index) => {
+      const savingsRow = savings.projection.rows[index]!;
+      const stocksRow = stocks.projection.rows[index]!;
+      expect(row.year).toBe(savingsRow.year);
+      expect(row.year).toBe(stocksRow.year);
+      expect(row.savingsTopUps).toBe(savingsRow.contributions);
+      expect(row.savingsGain).toBe(savingsRow.gain);
+      expect(row.savingsTax).toBe(savingsRow.tax);
+      expect(row.savingsBalance).toBe(savingsRow.endBalance);
+      expect(row.savingsReal).toBe(savingsRow.realEndBalance);
+      expect(row.stocksTopUps).toBe(stocksRow.contributions);
+      expect(row.stocksGain).toBe(stocksRow.gain);
+      expect(row.stocksFees).toBe(stocksRow.fees);
+      expect(row.stocksBalance).toBe(stocksRow.endBalance);
+      expect(row.stocksReal).toBe(stocksRow.realEndBalance);
+    });
+    expect(rows[0]?.savingsTax).toBeGreaterThan(0);
+    expect(rows[0]?.stocksFees).toBeGreaterThan(0);
+    expect(rows.at(-1)?.savingsReal).toBeLessThan(rows.at(-1)!.savingsBalance!);
+
+    const chart = goalCompareChart(input.balance, comparison);
+    const savingsChart = goalChart(input.balance, savings.projection);
+    const stocksChart = goalChart(input.balance, stocks.projection);
+    expect(chart).toHaveLength(savingsChart.length);
+    expect(chart).toHaveLength(stocksChart.length);
+    chart.forEach((point, index) => {
+      expect(point.year).toBe(savingsChart[index]!.year);
+      expect(point.savings).toBe(savingsChart[index]!.balance);
+      expect(point.savingsReal).toBe(savingsChart[index]!.real);
+      expect(point.stocks).toBe(stocksChart[index]!.balance);
+      expect(point.stocksReal).toBe(stocksChart[index]!.real);
+    });
+    expect(chart[0]).toMatchObject({ year: 0, savings: input.balance, stocks: input.balance });
   });
 });
 
